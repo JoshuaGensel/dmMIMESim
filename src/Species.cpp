@@ -208,7 +208,8 @@ namespace species
     species::species_map drawSpeciesIds()
     {
         auto& constants = constants::Constants::get_instance();
-        const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+        // const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+        const auto seed = static_cast<unsigned int>(0);
         std::default_random_engine generator(seed);
 
         // contains the map with all sequence species
@@ -433,7 +434,8 @@ namespace species
     {
         // set up the random generator (note: when it is created in every call, the statistics are messed up (pseudo
         // random))
-        const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+        //  const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+        const auto seed = static_cast<unsigned int>(0);
         std::default_random_engine generator(seed);
 
         // sample error for all sequences of the bound / unbound fraction

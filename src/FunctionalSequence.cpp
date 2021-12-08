@@ -16,7 +16,8 @@ std::vector<double> FunctionalSequence::drawKdValues()
 {
     auto& constants = constants::Constants::get_instance();
     std::vector<double> kds(constants.SVal);
-    const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+    // const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+    const auto seed = static_cast<unsigned int>(0);
     std::default_random_engine generator(seed);
     std::bernoulli_distribution bd(constants.P_EFFECT);
     std::lognormal_distribution<double> lnd(0, 1);
@@ -33,7 +34,8 @@ std::vector<double> FunctionalSequence::drawEpistasis()
 {
     auto& constants = constants::Constants::get_instance();
     std::vector<double> epistasis(constants.PWVal);
-    const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+    // const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+    const auto seed = static_cast<unsigned int>(0);
     std::default_random_engine generator(seed);
     std::bernoulli_distribution bd(constants.P_EPISTASIS);
     std::lognormal_distribution<double> lnd(0, 1);
