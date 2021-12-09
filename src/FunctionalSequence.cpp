@@ -30,6 +30,24 @@ std::vector<double> FunctionalSequence::drawKdValues()
     return kds;
 }
 
+std::vector<double> FunctionalSequence::readKdValues(const std::string& inputPath)
+{
+    fs::path kdFile(fs::canonical(inputPath) / "single_kds.txt");
+
+    // TODO: make more efficient by using the param file in inputPath to know
+    //  the size of the vector beforehand
+    std::vector<double> kds;
+
+    std::ifstream infile(kdFile);
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        // each line in this file contains one item (1 column file)
+        kds.push_back(std::stod(line));
+    }
+    return kds;
+}
+
 std::vector<double> FunctionalSequence::drawEpistasis()
 {
     auto& constants = constants::Constants::get_instance();
@@ -46,6 +64,24 @@ std::vector<double> FunctionalSequence::drawEpistasis()
         // first sample if position pair has epistatic effect (bernoulli) and then the value of the epistasis (log
         // normal distributed)
         epistasis[i] = bd(generator) ? lnd(generator) : constants.NO_EPISTASIS;
+    }
+    return epistasis;
+}
+
+std::vector<double> FunctionalSequence::readEpistasis(const std::string& inputPath)
+{
+    fs::path epiFile(fs::canonical(inputPath) / "pairwise_epistasis.txt");
+
+    // TODO: make more efficient by using the param file in inputPath to know
+    //  the size of the vector beforehand
+    std::vector<double> epistasis;
+
+    std::ifstream infile(epiFile);
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        // each line in this file contains one item (1 column file)
+        epistasis.push_back(std::stod(line));
     }
     return epistasis;
 }

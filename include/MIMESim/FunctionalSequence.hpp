@@ -31,11 +31,23 @@ class FunctionalSequence
     std::vector<double> drawKdValues();
 
     /**
+     * Reads saved Kds values from disk from the inputPath
+     * @return the vector with all Kd values
+     */
+    std::vector<double> readKdValues(const std::string &inputPath);
+
+    /**
      * Draws the epistasis value for each PWVal (= each pair of positions and each combination of possible mutation
      * symbols) according to log normal distribution with a probability p_epi
      * @return the vector with all Epistasis values
      */
     std::vector<double> drawEpistasis();
+
+    /**
+     * Reads saved Epistasis values from disk from the inputPath
+     * @return the vector with all Epistasis values
+     */
+    std::vector<double> readEpistasis(const std::string &inputPath);
 
     /*
      * computes the index within the vector representation of a symmetric matrix
