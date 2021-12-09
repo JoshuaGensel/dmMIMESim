@@ -7,14 +7,15 @@
 //
 
 #include "Constants.hpp"
+#include "Count.hpp"
 #include "FunctionalSequence.hpp"
 #include "Species.hpp"
 #include "Utils.hpp"
 
-#include <Count.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <set>
@@ -252,6 +253,32 @@ namespace species
             //            species_map.at(id).incrementCount();
         }
         return species_map;
+    }
+
+    void write_to_file(const std::string &out_file, species_map &spec_map, std::valarray<unsigned int> &S_pool,
+                       const std::string &header)
+    {
+        std::ofstream outfile(out_file);
+
+        if (outfile.good())
+        {
+            outfile << header;
+
+            int specIdx = 0;
+            for (auto it = spec_map.begin(); it != spec_map.end(); ++it)
+            {
+
+                // only include non-zero occurences
+                if (S_pool[specIdx] > 0)
+                {
+                    // print SpeciesID
+                    outfile << it->first;
+                    // print number of sequences in pool
+                    outfile << '\t' << S_pool[specIdx] << '\n';
+                }
+                ++specIdx;
+            }
+        }
     }
 
     // TODO testen
@@ -564,5 +591,4 @@ namespace species
         }
         return counters;
     }
-
 }

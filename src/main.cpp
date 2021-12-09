@@ -184,6 +184,10 @@ int main(int argc, const char* argv[])
     counters_wt.counter_bound_2d.write_to_file(outputPath / "2d" / (wt_bound_id + ".txt"));
     counters_wt.counter_unbound_2d.write_to_file(outputPath / "2d" / (wt_unbound_id + ".txt"));
 
+    fs::create_directory(outputPath / "sequences");
+    species::write_to_file(outputPath / "sequences" / (mut_bound_id + ".txt"), species_vec, S_bound);
+    species::write_to_file(outputPath / "sequences" / (mut_unbound_id + ".txt"), species_vec, S_unbound);
+
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
     std::cout << "Duration: " << diff.count() << " s\n";
