@@ -92,6 +92,12 @@ FunctionalSequence& FunctionalSequence::get_instance()
     return instance;
 }
 
+FunctionalSequence& FunctionalSequence::get_instance(const std::string& inputPath)
+{
+    static FunctionalSequence instance(inputPath);
+    return instance;
+}
+
 const double FunctionalSequence::getKd(const Mutation& p)
 {
     return kds.at(getVectorIndex(p));

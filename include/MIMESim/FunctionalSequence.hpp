@@ -23,6 +23,9 @@ class FunctionalSequence
     // singleton class has a private constructor which is called by a public method
     FunctionalSequence() : kds(drawKdValues()), epistasis(drawEpistasis()){};
 
+    // singleton class has a private constructor which is called by a public method
+    FunctionalSequence(const std::string &inputPath) : kds(readKdValues(inputPath)), epistasis(readEpistasis(inputPath)){};
+
     /**
      * Draws the Kds value according to log normal distribution with a probability p_kd for each L postions and q-1
      * possible mutations
@@ -95,6 +98,12 @@ class FunctionalSequence
      * @return singleton instance of the true KD and Epistasis information
      */
     static FunctionalSequence& get_instance();
+
+    /**
+     *
+     * @return singleton instance of the true KD and Epistasis information as provided in inputPath
+     */
+    static FunctionalSequence &get_instance(const std::string &inputPath);
 
     /**
      * Write all Kd values in consecutive order into the given outputfile, delimited by a new line
