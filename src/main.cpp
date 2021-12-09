@@ -28,9 +28,20 @@ int main(int argc, const char* argv[])
     auto start = std::chrono::high_resolution_clock::now();
 
     fs::path outputPath("../results");
+    fs::path inputPath("");
+    bool use_inputPath = false;
+
     if (argc > 1)
     {
         outputPath = argv[1];
+    }
+
+    // TODO: Cleaner solution for this?
+    // TODO: Document that input path can only be used when output path is specified as well.
+    if (argc > 2)
+    {
+        inputPath = argv[2];
+        use_inputPath = true;
     }
 
     if (!fs::exists(outputPath))
@@ -41,6 +52,35 @@ int main(int argc, const char* argv[])
     else
     {
         std::cout << "Using output directory " << fs::canonical(outputPath) << std::endl;
+    }
+
+    if (use_inputPath)
+    {
+        if (!fs::exists(inputPath))
+        {
+            std::cerr << "Input directory does not exist:\n" << fs::canonical(inputPath) << std::endl;
+            return 1;
+        }
+        else
+        {
+            std::cout << "Using input directory " << fs::canonical(inputPath) << std::endl;
+        }
+
+        if (!fs::exists(inputPath / "single_kds.txt"))
+        {
+            std::cerr << "Input file does not exist:\n" << fs::canonical(inputPath) / "single_kds.txt" << std::endl;
+            return 2;
+        }
+        else if (!fs::exists(inputPath / "pairwise_epistasis.txt"))
+        {
+            std::cerr << "Input file does not exist:\n"
+                      << fs::canonical(inputPath) / "pairwise_epistasis.txt" << std::endl;
+            return 3;
+        }
+        else
+        {
+            std::cout << "All required files are present in input directory. " << std::endl;
+        }
     }
 
     utils::readParameters(outputPath);
@@ -69,7 +109,8 @@ int main(int argc, const char* argv[])
     start = std::chrono::high_resolution_clock::now();
 
     // Create Ground Truth: Effects of each mutated position and epistatic effects and sequencing noise
-    FunctionalSequence& effects = FunctionalSequence::get_instance();
+    FunctionalSequence& effects =
+        use_inputPath ? FunctionalSequence::get_instance(inputPath) : FunctionalSequence::get_instance();
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
