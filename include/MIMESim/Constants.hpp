@@ -115,5 +115,24 @@ namespace constants
         // Constants(unsigned int length, unsigned int q, double p_mut) : L(length),PWVal(L*(L-1)/2), Q(q),
         // P_MUT(p_mut), NMUT_RANGE(setNMutRange()), P_NMUT(setP_NMut()) {};
     };
+
+    /**
+     * Read in parameters from a given parameter file in the given result directory. If there is no file, use default
+     * parameters
+     * TODO: entweder result ordner angeben als Muss, wo ggf die parameter liste drin ist
+     */
+    void readParameters(const fs::path &outputPath);
+
+    /**
+     * TODO noch abfragen, dass nur bei "" in den cout geschrieben werden soll?
+     * Write parameters into a parameter file in the given output path.
+     * If the path does not exist, the parameters are printed into cout
+     */
+    void writeParameters(const fs::path &outputPath);
+
+    /**
+     * Write parameters into cout
+     */
+    void writeParameters();
 }
 #endif /* Constants_hpp */

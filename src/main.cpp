@@ -83,7 +83,7 @@ int main(int argc, const char* argv[])
         }
     }
 
-    utils::readParameters(outputPath);
+    constants::readParameters(outputPath);
 
     // get the newly created instance of the constants
     auto& cons = constants::Constants::get_instance();
@@ -275,7 +275,7 @@ int main(int argc, const char* argv[])
     std::cout << "****** Write parameter into File *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    utils::writeParameters(cons.OUTPUT_DIR);
+    constants::writeParameters(cons.OUTPUT_DIR);
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
