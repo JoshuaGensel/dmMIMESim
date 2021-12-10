@@ -110,8 +110,6 @@ double UnboundProtein::solve(std::valarray<count_type>& S_bound, std::valarray<c
     // auto f_unbound = frequencies - f_bound;
 
     // first sample the number of unbound sequences of the sequence variant
-    auto& constants = constants::Constants::get_instance();
-
     //    std::transform(std::begin(f_bound), std::end(f_bound), std::begin(counts), std::begin(S_bound), [m =
     //    constants.M](const auto p, const auto s) {
     //        //auto blub =  std::min(drawBinomialNumber(m, p),s);

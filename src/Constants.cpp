@@ -16,17 +16,6 @@
 namespace constants
 {
 
-    // Initialize static member inited
-    bool Constants::inited = false;
-
-    // separate definitions for static constexpr need to be placed out of the class to enable linkage
-    constexpr double Constants::KD_WT;
-    // constexpr double Constants::P_EFFECT;
-    constexpr double Constants::NO_EPISTASIS;
-    // constexpr double Constants::P_EPISTASIS;
-    // constexpr unsigned int Constants::MAX_MUT ;
-    constexpr unsigned int Constants::M;
-
     /*
      * determination of the maximal number of mutations (Expected number of occurrence >5), must be minimum 3
      */
@@ -91,39 +80,7 @@ namespace constants
         return (p_nmut);
     };
 
-    Constants& Constants::get_instance()
-    {
-        if (inited)
-        {
-            // Guaranteed to be destroyed.
-            // Instantiated on first use.
-            // mock call of constructor
-            static Constants& c = create_instance(0, 0, 0, 0, 0, 0, std::filesystem::path());
-            return c;
-        }
-        // constexpr unsigned int L_mock = 0;
-        // Constants& c = create_instance(L_mock, 0, 0, 0, 0, 0, std::filesystem::path());
-        // if(L_mock != c.L)
-        //     return c;
-        else
-        {
-            std::cerr << "Singleton not correctly instantiated." << std::endl;
-            // TODO anderen exception type
-            throw std::invalid_argument("Singleton not correctly instantiated.");
-        }
-    }
-
-    Constants& Constants::create_instance(const unsigned int length, const unsigned int q, const double p_mut,
-                                          const double p_error, const double p_effect, const double p_epistasis,
-                                          const fs::path outputDir)
-    {
-        // static Constants instance(length);
-        static Constants instance(length, q, p_mut, p_error, p_effect, p_epistasis, outputDir);
-        inited = true;
-        return instance;
-    }
-
-    const Constants &readParameters(const fs::path &outputPath)
+    const Constants& readParameters(const fs::path& outputPath)
     {
 
         if (!outputPath.empty())
@@ -201,7 +158,7 @@ namespace constants
                         infile.close();
                         std::cout << " ... successful." << std::endl;
                     }
-                    catch (const std::invalid_argument &ia)
+                    catch (const std::invalid_argument& ia)
                     {
                         // TODO anders mit umgehen?
                         std::cerr << "Error in parameter file. Invalid argument for parameter " << param << " ("
@@ -218,10 +175,10 @@ namespace constants
             }
 
             // Create constants which are used through out this test set
-            Constants &cons = Constants::create_instance(L, q, p_mut, p_error, p_effect, p_epistasis, outputPath);
-            writeParameters(cons);
+            Constants* cons = new Constants(L, q, p_mut, p_error, p_effect, p_epistasis, outputPath);
+            writeParameters(*cons);
 
-            return cons;
+            return *cons;
         }
         else
         {
@@ -231,10 +188,10 @@ namespace constants
         }
     }
 
-    void writeParameters(const fs::path &outputPath, const Constants &params)
+    void writeParameters(const fs::path& outputPath, const Constants& params)
     {
         // initialize the stream with the
-        std::ostream *paraStream = &std::cout;
+        std::ostream* paraStream = &std::cout;
         std::ofstream ofs;
 
         if (fs::exists(outputPath) && fs::is_directory(outputPath))
@@ -261,7 +218,7 @@ namespace constants
         }
     }
 
-    void writeParameters(const Constants &params)
+    void writeParameters(const Constants& params)
     {
         writeParameters("", params);
     }

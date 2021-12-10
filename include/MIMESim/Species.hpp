@@ -9,6 +9,7 @@
 #ifndef Species_hpp
 #define Species_hpp
 
+#include "Constants.hpp"
 #include "Count.hpp"
 #include "Mutation.hpp"
 
@@ -39,6 +40,7 @@ namespace species
 
       private:
         const unsigned int specId;
+        const constants::Constants& params;
         unsigned int count;
         const unsigned int numMut;
         // mutatated positions need to be in ascending order
@@ -63,9 +65,11 @@ namespace species
         mutVector specIdxToMutPos();
 
       public:
-        Species(const unsigned int id);
+        Species(const unsigned int id, const constants::Constants& param);
 
         const unsigned int getSpecId() const;
+
+        const constants::Constants& getParams() const;
 
         unsigned int getCount() const;
 
@@ -120,13 +124,13 @@ namespace species
 
     using species_map = std::unordered_map<int, Species>;
 
-    mutVector specIdxToMutPos(const unsigned specId);
+    mutVector specIdxToMutPos(const unsigned specId, const constants::Constants& params);
 
-    unsigned mutPosToSpecIdx(const mutVector& mutPos);
+    unsigned mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params);
 
-    unsigned getNumberOfMutationsById(const unsigned specId);
+    unsigned getNumberOfMutationsById(const unsigned specId, const constants::Constants& params);
 
-    species_map drawSpeciesIds();
+    species_map drawSpeciesIds(const constants::Constants& params);
 
     /**
      *
@@ -138,11 +142,14 @@ namespace species
     void write_to_file(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
                        const std::string& header = "speciesID\tcount\n");
 
-    std::set<Mutation> drawError_2(const mutVector& mutations, std::default_random_engine& generator);
+    std::set<Mutation> drawError_2(const mutVector& mutations, const constants::Constants& params,
+                                   std::default_random_engine& generator);
+
+    void countErrors(const unsigned int S, const mutVector& mutatedPositions, const constants::Constants& params,
+                     count::counter_1& counter_1d, count::counter_2& counter_2d);
 
     count::counter_collection countMutationsWithErrors(const std::valarray<unsigned int>& SBound,
                                                        const std::valarray<unsigned int>& SUnbound,
-                                                       const species_map& spec_map);
-
+                                                       const species_map& spec_map, const constants::Constants& params);
 }
 #endif /* Species_hpp */
