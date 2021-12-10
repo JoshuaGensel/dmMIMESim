@@ -83,10 +83,8 @@ int main(int argc, const char* argv[])
         }
     }
 
-    constants::readParameters(outputPath);
-
-    // get the newly created instance of the constants
-    auto& cons = constants::Constants::get_instance();
+    // get the constants of the simulation from the parameters file
+    const constants::Constants& cons = constants::readParameters(outputPath);
 
     std::cout << "MaxMut " << cons.MAX_MUT << std::endl;
 

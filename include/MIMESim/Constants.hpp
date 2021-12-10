@@ -121,7 +121,7 @@ namespace constants
      * parameters
      * TODO: entweder result ordner angeben als Muss, wo ggf die parameter liste drin ist
      */
-    void readParameters(const fs::path &outputPath);
+    const Constants &readParameters(const fs::path &outputPath);
 
     /**
      * TODO noch abfragen, dass nur bei "" in den cout geschrieben werden soll?

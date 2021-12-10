@@ -123,7 +123,7 @@ namespace constants
         return instance;
     }
 
-    void readParameters(const fs::path &outputPath)
+    const Constants &readParameters(const fs::path &outputPath)
     {
 
         if (!outputPath.empty())
@@ -220,6 +220,8 @@ namespace constants
             // Create constants which are used through out this test set
             Constants &cons = Constants::create_instance(L, q, p_mut, p_error, p_effect, p_epistasis, outputPath);
             writeParameters();
+
+            return cons;
         }
         else
         {
