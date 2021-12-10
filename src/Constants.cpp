@@ -219,7 +219,7 @@ namespace constants
 
             // Create constants which are used through out this test set
             Constants &cons = Constants::create_instance(L, q, p_mut, p_error, p_effect, p_epistasis, outputPath);
-            writeParameters();
+            writeParameters(cons);
 
             return cons;
         }
@@ -231,18 +231,15 @@ namespace constants
         }
     }
 
-    void writeParameters(const fs::path &outputPath)
+    void writeParameters(const fs::path &outputPath, const Constants &params)
     {
-
-        auto &cons = Constants::get_instance();
-
         // initialize the stream with the
         std::ostream *paraStream = &std::cout;
         std::ofstream ofs;
 
         if (fs::exists(outputPath) && fs::is_directory(outputPath))
         {
-            auto paraFile(outputPath / cons.PARAMETER_FILE);
+            auto paraFile(outputPath / params.PARAMETER_FILE);
             std::cout << "Parameter File: " << fs::canonical(outputPath) << std::endl;
             ofs.open(paraFile);
             paraStream = &ofs;
@@ -251,21 +248,21 @@ namespace constants
         if ((*paraStream).good())
         {
             (*paraStream) << "### paratemers regarding kd sampling ###\n";
-            (*paraStream) << "kd_wt\t" << cons.KD_WT << '\n';
-            (*paraStream) << "p_effect\t" << cons.P_EFFECT << '\n';
-            (*paraStream) << "p_epistasis\t" << cons.P_EPISTASIS << '\n';
+            (*paraStream) << "kd_wt\t" << params.KD_WT << '\n';
+            (*paraStream) << "p_effect\t" << params.P_EFFECT << '\n';
+            (*paraStream) << "p_epistasis\t" << params.P_EPISTASIS << '\n';
             (*paraStream) << "### paramters regarding sequence sampling ###\n";
-            (*paraStream) << "L\t" << cons.L << '\n';
-            (*paraStream) << "q\t" << cons.Q << '\n';
-            (*paraStream) << "M\t" << cons.M << '\n';
-            (*paraStream) << "p_mut\t" << cons.P_MUT << '\n';
-            (*paraStream) << "p_error\t" << cons.P_ERR << '\n';
+            (*paraStream) << "L\t" << params.L << '\n';
+            (*paraStream) << "q\t" << params.Q << '\n';
+            (*paraStream) << "M\t" << params.M << '\n';
+            (*paraStream) << "p_mut\t" << params.P_MUT << '\n';
+            (*paraStream) << "p_error\t" << params.P_ERR << '\n';
             // paraOutStream.close();
         }
     }
 
-    void writeParameters()
+    void writeParameters(const Constants &params)
     {
-        writeParameters("");
+        writeParameters("", params);
     }
 }

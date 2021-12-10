@@ -273,7 +273,7 @@ int main(int argc, const char* argv[])
     std::cout << "****** Write parameter into File *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    constants::writeParameters(cons.OUTPUT_DIR);
+    constants::writeParameters(cons.OUTPUT_DIR, cons);
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;

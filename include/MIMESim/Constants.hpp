@@ -128,11 +128,11 @@ namespace constants
      * Write parameters into a parameter file in the given output path.
      * If the path does not exist, the parameters are printed into cout
      */
-    void writeParameters(const fs::path &outputPath);
+    void writeParameters(const fs::path &outputPath, const Constants &params);
 
     /**
      * Write parameters into cout
      */
-    void writeParameters();
+    void writeParameters(const Constants &params);
 }
 #endif /* Constants_hpp */
