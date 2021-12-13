@@ -13,6 +13,7 @@
 #include "Utils.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -108,6 +109,10 @@ namespace species
         ++this->count;
     }
 
+    void Species::decrementCount()
+    {
+        --this->count;
+    }
     //    const ref::ref_map &Species::getRead() const {
     //        return read;
     //    }
@@ -253,6 +258,16 @@ namespace species
             //            species_map.at(id).incrementCount();
         }
         return species_map;
+    }
+
+    unsigned int speciesMapSum(species_map species_vec)
+    {
+        unsigned int count = 0;
+        for (auto it = species_vec.begin(); it != species_vec.end(); ++it)
+        {
+            count = count + it->second.getCount();
+        }
+        return count;
     }
 
     void write_to_file(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
@@ -586,5 +601,101 @@ namespace species
             // spec_map.erase(it++);
         }
         return counters;
+    }
+
+    species_map combineSpecies(species_map firstSpec, species_map secondSpec, const constants::Constants& firstParams,
+                               const constants::Constants& secondParams)
+    {
+        assert((firstParams.L == secondParams.L) && "Both species sets should have the same length!");
+        assert((firstParams.Q == secondParams.Q) && "Both species sets should have the same alphabet!");
+
+        constants::Constants* combined_params = new constants::Constants(firstParams, secondParams); // 2MAX_MUT
+
+        assert((speciesMapSum(firstSpec) == speciesMapSum(secondSpec)) &&
+               "Both species sets should have the same number of sequences!");
+        int total = speciesMapSum(firstSpec);
+
+        // contains the map with all sequence species
+        species::species_map species_map;
+
+        int done_counter = 0;
+        // loop through both maps simultaneously
+        for (auto it1 = firstSpec.begin(), end1 = firstSpec.end(), it2 = secondSpec.begin(), end2 = secondSpec.end();
+             it1 != end1 || it2 != end2;)
+        {
+            assert((it1->second.getCount() != 0) && (it2->second.getCount() != 0) &&
+                   "This should not happen if both species sets should have the same number of sequences");
+            assert((done_counter < total) && "This should not happen if iterator loop is well-defined");
+
+            mutVector combined = combineMutations(it1->second.getMutatedPositions(), it2->second.getMutatedPositions());
+            unsigned int id = mutPosToSpecIdx(combined, *combined_params);
+
+            // create new object if not yet present (return value gives iterator and flag if insertion happened)
+            // the id is the key for the map, and also the parameter for the constructor for the species class
+            auto currentEntry = species_map.try_emplace(id, id, *combined_params);
+            if (currentEntry.second)
+                currentEntry.first->second.computeSpeciesKd();
+            currentEntry.first->second.incrementCount();
+
+            it1->second.decrementCount();
+            it2->second.decrementCount();
+            ++done_counter;
+
+            if ((it1->second.getCount() == 0) && (it1 != end1))
+            {
+                ++it1;
+            }
+
+            if ((it2->second.getCount() == 0) && (it2 != end2))
+            {
+                ++it2;
+            }
+        }
+        return species_map;
+    }
+
+    mutVector combineMutations(mutVector firstMut, mutVector secondMut)
+    {
+        mutVector comb_mut(secondMut);
+        // newest mutations appear before old ones in vector
+        comb_mut.insert(comb_mut.end(), firstMut.begin(), firstMut.end());
+
+        // A duplicate mutation means the position is mutated back to the wildtype
+        // and hence, that this mutation should be removed from the mutVector.
+
+        // Create a map to store the frequency of each mutations in vector
+        std::map<Mutation, int> countMutMap;
+        for (auto it = comb_mut.begin(); it != comb_mut.end();)
+        {
+            auto result = countMutMap.insert(std::pair<Mutation, int>(*it, 1));
+            if (result.second == false) // element already exists
+            {
+                it = comb_mut.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        // When two different mutations exist for the same position, keep the newest one.
+
+        // Create a map to store the frequency of each position in vector
+        std::map<unsigned int, int> countPosMap;
+        for (auto it = comb_mut.begin(); it != comb_mut.end();)
+        {
+            auto result = countPosMap.insert(std::pair<unsigned int, int>(it->getPosition(), 1));
+            if (result.second == false) // element already exists
+            {
+                it = comb_mut.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        std::sort(comb_mut.begin(), comb_mut.end());
+        return comb_mut;
     }
 }

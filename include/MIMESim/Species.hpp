@@ -85,6 +85,8 @@ namespace species
 
         void incrementCount();
 
+        void decrementCount();
+
         void computeSpeciesKd();
 
         // TODO weg
@@ -132,6 +134,8 @@ namespace species
 
     species_map drawSpeciesIds(const constants::Constants& params);
 
+    unsigned int speciesMapSum(species_map species_vec);
+
     /**
      *
      * @param out_file
@@ -151,5 +155,10 @@ namespace species
     count::counter_collection countMutationsWithErrors(const std::valarray<unsigned int>& SBound,
                                                        const std::valarray<unsigned int>& SUnbound,
                                                        const species_map& spec_map, const constants::Constants& params);
+
+    species_map combineSpecies(species_map firstSpec, species_map secondSpec, const constants::Constants& firstParams,
+                               const constants::Constants& secondParams);
+
+    mutVector combineMutations(mutVector firstMut, mutVector secondMut);
 }
 #endif /* Species_hpp */
