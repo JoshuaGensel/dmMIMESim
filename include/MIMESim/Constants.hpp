@@ -83,6 +83,14 @@ namespace constants
               MAX_MUT(computeMaxMut(length, p_mut / (q - 1))),
               NMUT_RANGE(setNMutRange(computeMaxMut(length, p_mut / (q - 1)), L, q)),
               P_NMUT(setP_NMut(computeMaxMut(length, p_mut / (q - 1)), length, p_mut)), OUTPUT_DIR(outputDir){};
+
+        // Constructor for combining species sets; most params are the same as in params2, except MAX_MUT related params
+        Constants(Constants const &params1, Constants const &params2)
+            : L(params2.L), Q(params2.Q), M(params2.M), MAX_MUT(params1.MAX_MUT + params2.MAX_MUT),
+              NMUT_RANGE(setNMutRange(params1.MAX_MUT + params2.MAX_MUT, params2.L, params2.Q)), SVal(params2.SVal),
+              PWVal(params2.PWVal), P_MUT(params2.P_MUT), P_ERR(params2.P_ERR), P_EFFECT(params2.P_EFFECT),
+              P_EPISTASIS(params2.P_EPISTASIS), P_NMUT(params2.P_NMUT), OUTPUT_DIR(params2.OUTPUT_DIR){};
+
         // Constants(unsigned int length, unsigned int q, double p_mut) : L(length),PWVal(L*(L-1)/2), Q(q),
         // P_MUT(p_mut), NMUT_RANGE(setNMutRange()), P_NMUT(setP_NMut()) {};
 
