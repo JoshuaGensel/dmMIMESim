@@ -113,7 +113,7 @@ namespace constants
             double p_error = p_mut / 10.0;
             double p_effect = 0.5;
             double p_epistasis = 0.3;
-            // unsigned int M = 12 * pow(10, 6);
+            unsigned int M = 12 * pow(10, 6);
 
             // if the output directory contains the parameter file, read it
             if (fs::exists(paraFile) && fs::is_regular_file(paraFile))
@@ -141,8 +141,8 @@ namespace constants
                             // TODO ist erstmal fest auf 1.0 gesetzt und M auf 12 Mio
                             // if(param == "kd_wt")
                             //     kd_wt = std::stoi(val);
-                            // if(param == "M")
-                            //     M = std:stoi(val);
+                            if (param == "M")
+                                M = std::stoi(val);
                             if (param == "L")
                                 L = std::stoi(val);
                             if (param == "q")
@@ -176,8 +176,8 @@ namespace constants
             }
 
             // Create constants which are used through out this test set
-            Constants* cons = new Constants(L, q, p_mut, p_error, p_effect, p_epistasis, outputPath);
             writeParameters(*cons);
+            Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, outputPath);
 
             return *cons;
         }
