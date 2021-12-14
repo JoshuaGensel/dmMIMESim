@@ -24,7 +24,7 @@
 
 namespace species
 {
-    Species::Species(const unsigned int id, const constants::Constants& param)
+    Species::Species(const unsigned long long id, const constants::Constants& param)
         : specId(id), params(param), numMut(getNumberOfMutationsById()), mutatedPositions(specIdxToMutPos()), count(0),
           mutCountBound(0), mutCountUnbound(0), errorCountBound(0.0), errorCountUnbound(0.0)
     {
@@ -64,7 +64,7 @@ namespace species
     //        return read;
     //    }
 
-    const unsigned int Species::getSpecId() const
+    const unsigned long long Species::getSpecId() const
     {
         return specId;
     }
@@ -276,7 +276,7 @@ namespace species
             std::vector<std::string> row_values;
             utils::split_string(line, '\t', row_values);
 
-            unsigned int id = std::stoi(row_values.at(0));
+            unsigned long long id = std::stoull(row_values.at(0));
             int count = std::stoi(row_values.at(1));
 
             auto currentObj = species_vec.emplace(id, Species{id, params});
@@ -364,7 +364,7 @@ namespace species
 
     // TODO: rekursiver Aufruf? Aber dafür müsste jedesmal für irgendein L' (Restlänger nach aktueller Position) die ID
     // ranges berechnet werden, oder mache ich das eh?
-    mutVector specIdxToMutPos(const unsigned specId, const constants::Constants& params)
+    mutVector specIdxToMutPos(const unsigned long long specId, const constants::Constants& params)
     {
         auto numMut = getNumberOfMutationsById(specId, params);
         // collect the mutated position with the respective mutation symbol
@@ -441,11 +441,11 @@ namespace species
     }
 
     // TODO testen! (vorallem das mit partial sum)
-    unsigned mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params)
+    unsigned long long mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params)
     {
         unsigned numMut = mutPos.size();
         // id for 0 mutations is 1
-        unsigned specId = 1;
+        unsigned long long specId = 1;
         if (numMut > 0)
         {
             // add the ids for the sequences with less mutations
@@ -491,7 +491,7 @@ namespace species
         return specId;
     }
 
-    unsigned getNumberOfMutationsById(const unsigned specId, const constants::Constants& params)
+    unsigned getNumberOfMutationsById(const unsigned long long specId, const constants::Constants& params)
     {
         // gives the index where the content is still lower than the given id
         auto low_it = std::lower_bound(std::begin(params.NMUT_RANGE), std::end(params.NMUT_RANGE), specId);
