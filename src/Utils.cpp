@@ -146,4 +146,10 @@ namespace utils
         return mutPos;
     }
 
+    std::string SampleIDStr(SampleID id)
+    {
+        std::string strings[8] = {"1", "2", "3", "4", "5", "6", "7", "8"};
+        return strings[id];
+    }
+
 }
