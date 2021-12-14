@@ -176,7 +176,6 @@ namespace constants
             }
 
             // Create constants which are used through out this test set
-            writeParameters(*cons);
             Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, outputPath);
 
             return *cons;
