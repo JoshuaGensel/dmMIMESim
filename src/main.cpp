@@ -199,16 +199,10 @@ int main(int argc, const char* argv[])
     constants::writeParameters(cons);
     std::cout << "MaxMut " << cons.MAX_MUT << std::endl;
 
-    // The 4 output files are saved with their ids where wild_type_bound = firstId, wild_type_unbound = firstId+1,
-    // mut_bound = firstId+2, mut_unbound = firstId+3
-    int firstId = 1;
-    std::string wt_bound_id(std::to_string(firstId));
-    std::string wt_unbound_id(std::to_string(firstId + 1));
-    std::string mut_bound_id(std::to_string(firstId + 2));
-    std::string mut_unbound_id(std::to_string(firstId + 3));
-
-    // TODO in einen Test mit einbringen
-    //     std::cout << "Maximal number of mutations: " << cons.MAX_MUT << std::endl;
+    // create subdirectories for the single and double mutant counts
+    fs::create_directory(outputPath / "2d");
+    fs::create_directory(outputPath / "1d");
+    fs::create_directory(outputPath / "sequences");
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
@@ -225,122 +219,123 @@ int main(int argc, const char* argv[])
     diff = end - start;
     std::cout << "Duration: " << diff.count() << " s\n";
 
-    std::cout << "****** Create species *******" << std::endl;
-    start = std::chrono::high_resolution_clock::now();
-    // Create M species, the map contains the counts for each sampled sequence id
-    species::species_map species_vec = species::drawSpeciesIds(cons);
+    // first round of mutagenesis
+    if (!use_inputPath)
+    {
+        species::species_map species_vec = firstRoundMutagenesis(outputPath);
+        auto results = runSelection(species_vec, cons);
+        count::counter_collection counters = std::get<0>(results);
+        std::valarray<unsigned int> S_bound = std::get<1>(results);
+        std::valarray<unsigned int> S_unbound = std::get<2>(results);
 
-    end = std::chrono::high_resolution_clock::now();
-    diff = end - start;
-    std::cout << "Duration: " << diff.count() << " s\n";
+        std::cout << "****** Create unmutated wild type library  *******" << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        // The "control expereriment / wild type library" contains only wildtype sequences
+        species::species_map wtSpecies_vec;
+        auto currentObj = wtSpecies_vec.emplace(std::make_pair<int, species::Species>(1, {1, cons}));
+        currentObj.first->second.setCount(cons.M);
+        currentObj.first->second.computeSpeciesKd();
+        end = std::chrono::high_resolution_clock::now();
+        diff = end - start;
+        std::cout << "Duration: " << diff.count() << " s\n";
 
-    // TODO: diese Art der Abfrage in die Tests packen
-    //     std::cout << "wt species count + freq. " << species_vec.at(1).getCount() << " " <<
-    //     species_vec.at(1).getFreq() << std::endl; std::cout << "mut species count + freq. " <<
-    //     species_vec.at(2).getCount() << " " << species_vec.at(2).getFreq() << std::endl; std::cout << "mut species
-    //     count + freq. " << species_vec.at(3).getCount() << " " << species_vec.at(3).getFreq() << std::endl;
-    //     //std::cout << "mut bound unbound freq. " << species_vec.at(20877).getCount() << " " <<
-    //     species_vec.at(20877).getFreq() << std::endl;
+        auto wtResults = runSelection(wtSpecies_vec, cons);
+        count::counter_collection counters_wt = std::get<0>(wtResults);
+        std::valarray<unsigned int> wtS_bound = std::get<1>(wtResults);
+        std::valarray<unsigned int> wtS_unbound = std::get<2>(wtResults);
 
-    std::cout << "****** Create unmutated wild type library  *******" << std::endl;
-    start = std::chrono::high_resolution_clock::now();
-    // auto wtSpecId_map = species::drawWildtypeErrors();
-    // std::vector<species::Species> wtSpecies_vec;
-    // The "control expereriment / wild type library" contains only wildtype sequences
-    species::species_map wtSpecies_vec;
-    auto currentObj = wtSpecies_vec.emplace(std::make_pair<int, species::Species>(1, {1, cons}));
-    currentObj.first->second.setCount(cons.M);
-    currentObj.first->second.computeSpeciesKd();
+        std::cout << "****** Write output to file *******" << std::endl;
+        start = std::chrono::high_resolution_clock::now();
 
-    end = std::chrono::high_resolution_clock::now();
-    diff = end - start;
-    std::cout << "Duration: " << diff.count() << " s\n";
+        // create for each barcode a textfile and write the counts into the files
+        counters.counter_bound_1d.write_to_file(outputPath / "1d" /
+                                                (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"));
+        counters.counter_unbound_1d.write_to_file(outputPath / "1d" /
+                                                  (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"));
+        counters.counter_bound_2d.write_to_file(outputPath / "2d" /
+                                                (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"));
+        counters.counter_unbound_2d.write_to_file(outputPath / "2d" /
+                                                  (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"));
 
-    std::cout << "****** Solve ODE to infer bound and unbound fraction of species *******" << std::endl;
-    start = std::chrono::high_resolution_clock::now();
-    // TODO: Umbau nach counts
-    // std::valarray<double> f_bound_tot;
-    // std::valarray<double> f_unbound_tot;
-    std::valarray<unsigned int> S_bound(species_vec.size());
-    std::valarray<unsigned int> S_unbound(species_vec.size());
+        counters_wt.counter_bound_1d.write_to_file(outputPath / "1d" /
+                                                   (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"));
+        counters_wt.counter_unbound_1d.write_to_file(outputPath / "1d" /
+                                                     (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"));
+        counters_wt.counter_bound_2d.write_to_file(outputPath / "2d" /
+                                                   (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"));
+        counters_wt.counter_unbound_2d.write_to_file(outputPath / "2d" /
+                                                     (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"));
 
-    // std::valarray<int> f_bound_tot(species_vec.size());
-    // std::valarray<int> f_unbound_tot(species_vec.size());
-    //  set up the ODE (binding competition) and solve it to get the bound and unbound fractions (from the total amount
-    //  M) in equilibrium
-    UnboundProtein f(species_vec);
-    f.solve(S_bound, S_unbound);
+        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"),
+                               species_vec, S_bound);
+        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"),
+                               species_vec, S_unbound);
+        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"),
+                               wtSpecies_vec, wtS_bound);
+        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"),
+                               wtSpecies_vec, wtS_unbound);
 
-    // stimmt ja so nicht mehr, da unrdered map
-    //    std::cout << "wt bound unbound freq. " << S_bound[0] << " " << S_unbound[0] << std::endl;
-    //    std::cout << "mut bound unbound freq. " << S_bound[1] << " " << S_unbound[1] << std::endl;
-    //    std::cout << "mut bound unbound freq. " << S_bound[2] << " " << S_unbound[2] << std::endl;
+        end = std::chrono::high_resolution_clock::now();
+        diff = end - start;
+        std::cout << "Duration: " << diff.count() << " s\n";
+    }
+    // second round of mutagenesis
+    else
+    {
+        auto results = secondRoundMutagenesis(inputPath, outputPath);
+        species::species_map species_vec_b = std::get<0>(results);
+        species::species_map species_vec_u = std::get<1>(results);
+        const constants::Constants& cons_in = std::get<2>(results);
 
-    //*************solve for wt
-    // TODO: Umbau nach counts
-    // std::valarray<double> f_bound_tot_wt;
-    // std::valarray<double> f_unbound_tot_wt;
-    std::valarray<unsigned int> S_bound_wt(wtSpecies_vec.size());
-    std::valarray<unsigned int> S_unbound_wt(wtSpecies_vec.size());
-    // set up the ODE (binding competition) and solve it to get the bound and unbound fractions (from the total amount
-    // M) in equilibrium
-    UnboundProtein f_wt(wtSpecies_vec);
-    f_wt.solve(S_bound_wt, S_unbound_wt);
+        // TODO: multithreading for results_bound, results_unbound; first change printing behavior
+        auto results_bound = runSelection(species_vec_b, cons_in);
+        count::counter_collection counters_bound = std::get<0>(results_bound);
+        std::valarray<unsigned int> S_bound_bound = std::get<1>(results_bound);
+        std::valarray<unsigned int> S_bound_unbound = std::get<2>(results_bound);
+        auto results_unbound = runSelection(species_vec_u, cons_in);
+        count::counter_collection counters_unbound = std::get<0>(results_unbound);
+        std::valarray<unsigned int> S_unbound_bound = std::get<1>(results_unbound);
+        std::valarray<unsigned int> S_unbound_unbound = std::get<2>(results_unbound);
 
-    end = std::chrono::high_resolution_clock::now();
-    diff = end - start;
-    std::cout << "Duration: " << diff.count() << " s\n";
+        std::cout << "****** Write output to file *******" << std::endl;
+        start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "****** Add noise and Count *******" << std::endl;
-    start = std::chrono::high_resolution_clock::now();
-    // Carefull: The map is extended by species that occur only because of sequencing error, hence the length of S_bound
-    // and S_unbound dont fit any more with the length of the map
-    // TODO: Umbau nach counts
-    // TODO weg
-    // species::addCountsWithError(S_bound, S_unbound, species_vec);
+        // create for each barcode a textfile and write the counts into the files
+        counters_bound.counter_bound_1d.write_to_file(outputPath / "1d" /
+                                                      (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"));
+        counters_bound.counter_unbound_1d.write_to_file(
+            outputPath / "1d" / (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"));
+        counters_bound.counter_bound_2d.write_to_file(outputPath / "2d" /
+                                                      (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"));
+        counters_bound.counter_unbound_2d.write_to_file(
+            outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"));
 
-    // species::addCountsWithError(S_bound_wt, S_unbound_wt, wtSpecies_vec);
+        counters_unbound.counter_bound_1d.write_to_file(
+            outputPath / "1d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"));
+        counters_unbound.counter_unbound_1d.write_to_file(
+            outputPath / "1d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"));
+        counters_unbound.counter_bound_2d.write_to_file(
+            outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"));
+        counters_unbound.counter_unbound_2d.write_to_file(
+            outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"));
 
-    std::cout << "Mutation Library" << std::endl;
-    ;
-    auto counters = species::countMutationsWithErrors(S_bound, S_unbound, species_vec, cons);
+        species::write_to_file(outputPath / "sequences" /
+                                   (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"),
+                               species_vec_b, S_bound_bound);
+        species::write_to_file(outputPath / "sequences" /
+                                   (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"),
+                               species_vec_b, S_bound_unbound);
+        species::write_to_file(outputPath / "sequences" /
+                                   (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"),
+                               species_vec_u, S_unbound_bound);
+        species::write_to_file(outputPath / "sequences" /
+                                   (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"),
+                               species_vec_u, S_unbound_unbound);
 
-    std::cout << "Wild type Library" << std::endl;
-    ;
-    auto counters_wt = species::countMutationsWithErrors(S_bound_wt, S_unbound_wt, wtSpecies_vec, cons);
-
-    end = std::chrono::high_resolution_clock::now();
-    diff = end - start;
-    std::cout << "Duration: " << diff.count() << " s\n";
-
-    std::cout << "****** Write output to file *******" << std::endl;
-    start = std::chrono::high_resolution_clock::now();
-
-    if (!fs::exists(outputPath))
-        ;
-    fs::create_directory(outputPath);
-
-    // create subdirectories for the single and double mutant counts
-    fs::create_directory(outputPath / "2d");
-    fs::create_directory(outputPath / "1d");
-    // create for each barcode a textfile and write the counts into the files
-    counters.counter_bound_1d.write_to_file(outputPath / "1d" / (mut_bound_id + ".txt"));
-    counters.counter_unbound_1d.write_to_file(outputPath / "1d" / (mut_unbound_id + ".txt"));
-    counters.counter_bound_2d.write_to_file(outputPath / "2d" / (mut_bound_id + ".txt"));
-    counters.counter_unbound_2d.write_to_file(outputPath / "2d" / (mut_unbound_id + ".txt"));
-
-    counters_wt.counter_bound_1d.write_to_file(outputPath / "1d" / (wt_bound_id + ".txt"));
-    counters_wt.counter_unbound_1d.write_to_file(outputPath / "1d" / (wt_unbound_id + ".txt"));
-    counters_wt.counter_bound_2d.write_to_file(outputPath / "2d" / (wt_bound_id + ".txt"));
-    counters_wt.counter_unbound_2d.write_to_file(outputPath / "2d" / (wt_unbound_id + ".txt"));
-
-    fs::create_directory(outputPath / "sequences");
-    species::write_to_file(outputPath / "sequences" / (mut_bound_id + ".txt"), species_vec, S_bound);
-    species::write_to_file(outputPath / "sequences" / (mut_unbound_id + ".txt"), species_vec, S_unbound);
-
-    end = std::chrono::high_resolution_clock::now();
-    diff = end - start;
-    std::cout << "Duration: " << diff.count() << " s\n";
+        end = std::chrono::high_resolution_clock::now();
+        diff = end - start;
+        std::cout << "Duration: " << diff.count() << " s\n";
+    }
 
     std::cout << "****** Write true values to files *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
