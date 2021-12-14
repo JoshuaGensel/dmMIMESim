@@ -18,6 +18,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 #include_directories(extern MIMESim TestMIMESim)
 #TODO ggf checken ob beim MIME + DCA überhaupt benötigt wird, dann hier rein schieben

@@ -16,9 +16,120 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <iostream>
 
 namespace fs = std::filesystem;
+
+species::species_map firstRoundMutagenesis(fs::path outputPath)
+{
+    const constants::Constants& params = constants::readParameters(outputPath);
+
+    std::cout << "****** Create new species *******" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    // Create M species, the map contains the counts for each sampled sequence id
+    species::species_map species_vec = species::drawSpeciesIds(params);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    std::cout << "Duration: " << diff.count() << " s\n";
+
+    return species_vec;
+}
+
+std::tuple<species::species_map, species::species_map, constants::Constants> secondRoundMutagenesis(fs::path inputPath,
+                                                                                                    fs::path outputPath)
+{
+    // TODO: fix printing in function readParameters
+    const constants::Constants& paramFirst = constants::readParameters(inputPath);
+    const constants::Constants& paramSecond = constants::readParameters(outputPath);
+
+    std::cout << "****** Load old species *******" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    species::species_map specOldBound = species::readFromFile(inputPath, utils::SampleID::mut_bound, paramSecond);
+    species::species_map specOldUnbound = species::readFromFile(inputPath, utils::SampleID::mut_unbound, paramSecond);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    std::cout << "Duration: " << diff.count() << " s\n";
+
+    unsigned int nBound = species::speciesMapSum(specOldBound);
+    unsigned int nUnbound = species::speciesMapSum(specOldUnbound);
+
+    // change M parameter, all other constants stay the same
+    constants::Constants paramSecondBound =
+        constants::Constants(paramSecond.L, paramSecond.Q, nBound, paramSecond.P_MUT, paramSecond.P_ERR,
+                             paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.OUTPUT_DIR);
+    constants::Constants paramSecondUnbound =
+        constants::Constants(paramSecond.L, paramSecond.Q, nUnbound, paramSecond.P_MUT, paramSecond.P_ERR,
+                             paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.OUTPUT_DIR);
+
+    std::cout << "****** Create new species *******" << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    // Create M species, the map contains the counts for each sampled sequence id
+    auto fut_specNewBound = std::async(std::launch::async, species::drawSpeciesIds, paramSecondBound);
+    auto fut_specNewUnbound = std::async(std::launch::async, species::drawSpeciesIds, paramSecondUnbound);
+    species::species_map specNewBound = fut_specNewBound.get();
+    species::species_map specNewUnbound = fut_specNewUnbound.get();
+    end = std::chrono::high_resolution_clock::now();
+    diff = end - start;
+    std::cout << "Duration: " << diff.count() << " s\n";
+
+    std::cout << "****** Combine old and new species *******" << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    auto fut_specCombBound = std::async(std::launch::async, species::combineSpecies, specOldBound, specNewBound,
+                                        paramFirst, paramSecondBound);
+    auto fut_specCombUnbound = std::async(std::launch::async, species::combineSpecies, specOldUnbound, specNewUnbound,
+                                          paramFirst, paramSecondBound);
+    auto result = std::make_tuple(fut_specCombBound.get(), fut_specCombUnbound.get(), paramSecond);
+    end = std::chrono::high_resolution_clock::now();
+    diff = end - start;
+    std::cout << "Duration: " << diff.count() << " s\n";
+
+    return result;
+}
+
+std::tuple<count::counter_collection, std::valarray<unsigned int>, std::valarray<unsigned int>>
+runSelection(species::species_map species_vec, const constants::Constants& params)
+{
+    std::cout << "****** Solve ODE to infer bound and unbound fraction *******" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    // TODO: Umbau nach counts
+    // std::valarray<double> f_bound_tot;
+    // std::valarray<double> f_unbound_tot;
+    std::valarray<unsigned int> S_bound(species_vec.size());
+    std::valarray<unsigned int> S_unbound(species_vec.size());
+
+    // std::valarray<int> f_bound_tot(species_vec.size());
+    // std::valarray<int> f_unbound_tot(species_vec.size());
+    //  set up the ODE (binding competition) and solve it to get the bound and unbound fractions (from the total
+    //  amount M) in equilibrium
+    UnboundProtein f(species_vec);
+    f.solve(S_bound, S_unbound);
+
+    // stimmt ja so nicht mehr, da unrdered map
+    //    std::cout << "wt bound unbound freq. " << S_bound[0] << " " << S_unbound[0] << std::endl;
+    //    std::cout << "mut bound unbound freq. " << S_bound[1] << " " << S_unbound[1] << std::endl;
+    //    std::cout << "mut bound unbound freq. " << S_bound[2] << " " << S_unbound[2] << std::endl;
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    std::cout << "Duration: " << diff.count() << " s\n";
+
+    std::cout << "****** Add noise and Count *******" << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    // Carefull: The map is extended by species that occur only because of sequencing error, hence the length of
+    // S_bound and S_unbound dont fit any more with the length of the map
+    // TODO: Umbau nach counts
+    // TODO weg
+    // species::addCountsWithError(S_bound, S_unbound, species_vec);
+
+    auto counters = species::countMutationsWithErrors(S_bound, S_unbound, species_vec, params);
+
+    end = std::chrono::high_resolution_clock::now();
+    diff = end - start;
+    std::cout << "Duration: " << diff.count() << " s\n";
+
+    return std::make_tuple(counters, S_bound, S_unbound);
+}
 
 int main(int argc, const char* argv[])
 {
