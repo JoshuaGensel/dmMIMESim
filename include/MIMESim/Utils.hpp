@@ -27,6 +27,21 @@ namespace utils
     mutatedPositions specIdxToMutPos(const unsigned long specIdx, const unsigned int L, const unsigned int numSymbols,
                                      const std::vector<unsigned int>& nMutRange);
 
+    enum SampleID : int
+    {
+        wt_bound,
+        wt_unbound,
+        mut_bound,
+        mut_unbound,
+        mut_bound_bound,
+        mut_bound_unbound,
+        mut_unbound_bound,
+        mut_unbound_unbound,
+    };
+
+    // return string identifier for sample as defined in SampleID enum
+    std::string SampleIDStr(SampleID id);
+
 }
 
 #endif /* Utils_hpp */
