@@ -85,7 +85,7 @@ int main(int argc, const char* argv[])
 
     // get the constants of the simulation from the parameters file
     const constants::Constants& cons = constants::readParameters(outputPath);
-
+    constants::writeParameters(cons);
     std::cout << "MaxMut " << cons.MAX_MUT << std::endl;
 
     // The 4 output files are saved with their ids where wild_type_bound = firstId, wild_type_unbound = firstId+1,
