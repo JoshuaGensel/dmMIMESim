@@ -76,16 +76,16 @@ namespace constants
         std::vector<double> setP_NMut(const unsigned int MaxMut, const unsigned L, const double pMut);
         unsigned int computeMaxMut(const unsigned int L, const double pMut);
 
-        Constants(unsigned int length, unsigned int q, double p_mut, double p_error, double p_effect,
+        Constants(unsigned int length, unsigned int q, unsigned int m, double p_mut, double p_error, double p_effect,
                   double p_epistasis, fs::path outputDir)
-            : L(length), SVal(length * (q - 1)), PWVal((length * (length - 1) / 2) * std::pow(q - 1, 2)), Q(q),
+            : L(length), M(m), SVal(length * (q - 1)), PWVal((length * (length - 1) / 2) * std::pow(q - 1, 2)), Q(q),
               P_MUT(p_mut), P_ERR(p_error), P_EFFECT(p_effect), P_EPISTASIS(p_epistasis),
               MAX_MUT(computeMaxMut(length, p_mut / (q - 1))),
               NMUT_RANGE(setNMutRange(computeMaxMut(length, p_mut / (q - 1)), L, q)),
               P_NMUT(setP_NMut(computeMaxMut(length, p_mut / (q - 1)), length, p_mut)), OUTPUT_DIR(outputDir){};
 
         // Constructor for combining species sets; most params are the same as in params2, except MAX_MUT related params
-        Constants(Constants const &params1, Constants const &params2)
+        Constants(Constants const& params1, Constants const& params2)
             : L(params2.L), Q(params2.Q), M(params2.M), MAX_MUT(params1.MAX_MUT + params2.MAX_MUT),
               NMUT_RANGE(setNMutRange(params1.MAX_MUT + params2.MAX_MUT, params2.L, params2.Q)), SVal(params2.SVal),
               PWVal(params2.PWVal), P_MUT(params2.P_MUT), P_ERR(params2.P_ERR), P_EFFECT(params2.P_EFFECT),
