@@ -260,6 +260,36 @@ namespace species
         return species_map;
     }
 
+    species_map readFromFile(const std::string& inputPath, utils::SampleID id, const constants::Constants& params)
+    {
+        fs::path speciesFile(fs::canonical(inputPath) / "sequences" / (utils::SampleIDStr(id) + ".txt"));
+
+        species::species_map species_vec;
+
+        std::ifstream infile(speciesFile);
+        std::string line;
+
+        std::getline(infile, line); // header row
+        while (std::getline(infile, line))
+        {
+            // per row: SpeciesID \t #instances
+            std::vector<std::string> row_values;
+            utils::split_string(line, '\t', row_values);
+
+            unsigned int id = std::stoi(row_values.at(0));
+            int count = std::stoi(row_values.at(1));
+
+            auto currentObj = species_vec.emplace(id, Species{id, params});
+            while (count > 0)
+            {
+                currentObj.first->second.incrementCount();
+                --count;
+            }
+            currentObj.first->second.computeSpeciesKd();
+        }
+        return species_vec;
+    }
+
     unsigned int speciesMapSum(species_map species_vec)
     {
         unsigned int count = 0;

@@ -42,6 +42,10 @@ namespace utils
     // return string identifier for sample as defined in SampleID enum
     std::string SampleIDStr(SampleID id);
 
+    /**
+     * Split string s into elements separated by delim
+     */
+    void split_string(const std::string& s, char delim, std::vector<std::string>& elems);
 }
 
 #endif /* Utils_hpp */

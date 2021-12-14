@@ -126,13 +126,15 @@ namespace species
 
     using species_map = std::unordered_map<int, Species>;
 
+    species_map drawSpeciesIds(const constants::Constants& params);
+
     mutVector specIdxToMutPos(const unsigned specId, const constants::Constants& params);
 
     unsigned mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params);
 
     unsigned getNumberOfMutationsById(const unsigned specId, const constants::Constants& params);
 
-    species_map drawSpeciesIds(const constants::Constants& params);
+    species_map readFromFile(const std::string& inputPath, utils::SampleID id, const constants::Constants& params);
 
     unsigned int speciesMapSum(species_map species_vec);
 
