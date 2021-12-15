@@ -402,7 +402,7 @@ namespace species
     }
 
     // TODO testen
-    std::set<Mutation> drawError_2(const mutVector& mutations, const constants::Constants& params)
+    std::set<Mutation> drawError_2(const constants::Constants& params)
     {
         std::default_random_engine& generator = Generator::get_instance()->engine;
         std::binomial_distribution<int> bino(params.L, params.P_ERR);
@@ -577,7 +577,7 @@ namespace species
         // sample error for all sequences of the bound / unbound fraction
         for (int b = 0; b < S; ++b)
         {
-            auto uniquePositions = drawError_2(mutatedPositions, params);
+            auto uniquePositions = drawError_2(params);
             if (uniquePositions.size() > 0)
             {
                 // if a real mutation has error, the according symbol need to be updated. In case it turns into wild

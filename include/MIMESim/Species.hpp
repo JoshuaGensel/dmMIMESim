@@ -154,7 +154,7 @@ namespace species
     void writeSequencesToFile(const std::string& out_file, species_map& spec_map,
                               std::vector<std::set<Mutation>> errors, std::valarray<unsigned int> S_pool);
 
-    std::set<Mutation> drawError_2(const mutVector& mutations, const constants::Constants& params);
+    std::set<Mutation> drawError_2(const constants::Constants& params);
 
     void countErrors(const unsigned int S, const mutVector& mutatedPositions, const constants::Constants& params,
                      count::counter_1& counter_1d, count::counter_2& counter_2d);
