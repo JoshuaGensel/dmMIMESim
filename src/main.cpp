@@ -206,7 +206,7 @@ int main(int argc, const char* argv[])
     // create subdirectories for the single and double mutant counts
     fs::create_directory(outputPath / "2d");
     fs::create_directory(outputPath / "1d");
-    fs::create_directory(outputPath / "sequences");
+    fs::create_directory(outputPath / "species");
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
@@ -270,13 +270,13 @@ int main(int argc, const char* argv[])
         counters_wt.counter_unbound_2d.write_to_file(outputPath / "2d" /
                                                      (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"));
 
-        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"),
+        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"),
                                species_vec, S_bound);
-        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"),
+        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"),
                                species_vec, S_unbound);
-        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"),
+        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"),
                                wtSpecies_vec, wtS_bound);
-        species::write_to_file(outputPath / "sequences" / (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"),
+        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"),
                                wtSpecies_vec, wtS_unbound);
 
         end = std::chrono::high_resolution_clock::now();
@@ -323,16 +323,15 @@ int main(int argc, const char* argv[])
         counters_unbound.counter_unbound_2d.write_to_file(
             outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"));
 
-        species::write_to_file(outputPath / "sequences" /
-                                   (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"),
+        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"),
                                species_vec_b, S_bound_bound);
-        species::write_to_file(outputPath / "sequences" /
+        species::write_to_file(outputPath / "species" /
                                    (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"),
                                species_vec_b, S_bound_unbound);
-        species::write_to_file(outputPath / "sequences" /
+        species::write_to_file(outputPath / "species" /
                                    (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"),
                                species_vec_u, S_unbound_bound);
-        species::write_to_file(outputPath / "sequences" /
+        species::write_to_file(outputPath / "species" /
                                    (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"),
                                species_vec_u, S_unbound_unbound);
 

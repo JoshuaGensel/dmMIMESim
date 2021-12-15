@@ -260,7 +260,7 @@ namespace species
 
     species_map readFromFile(const std::string& inputPath, utils::SampleID id, const constants::Constants& params)
     {
-        fs::path speciesFile(fs::canonical(inputPath) / "sequences" / (utils::SampleIDStr(id) + ".txt"));
+        fs::path speciesFile(fs::canonical(inputPath) / "species" / (utils::SampleIDStr(id) + ".txt"));
 
         species::species_map species_vec;
 
