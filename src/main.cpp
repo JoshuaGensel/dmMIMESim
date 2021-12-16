@@ -132,6 +132,20 @@ runSelection(species::species_map species_vec, const constants::Constants& param
     return std::make_tuple(counters, S_bound, S_unbound);
 }
 
+void writeToFile(fs::path outputPath, count::counter_collection& counter, species::species_map& species_vec,
+                 std::vector<std::set<Mutation>>& errors, std::valarray<unsigned int>& S_bound,
+                 std::valarray<unsigned int>& S_unbound, utils::SampleID boundID, utils::SampleID unboundID)
+{
+    counter.counter_bound_1d.write_to_file(outputPath / "1d" / (utils::SampleIDStr(boundID) + ".txt"));
+    counter.counter_unbound_1d.write_to_file(outputPath / "1d" / (utils::SampleIDStr(unboundID) + ".txt"));
+    counter.counter_bound_2d.write_to_file(outputPath / "2d" / (utils::SampleIDStr(boundID) + ".txt"));
+    counter.counter_unbound_2d.write_to_file(outputPath / "2d" / (utils::SampleIDStr(unboundID) + ".txt"));
+
+    species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(boundID) + ".txt"), species_vec, S_bound);
+    species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
+                                S_unbound);
+}
+
 int main(int argc, const char* argv[])
 {
 
@@ -262,36 +276,10 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-
-        // create for each barcode a textfile and write the counts into the files
-        counters.counter_bound_1d.write_to_file(outputPath / "1d" /
-                                                (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"));
-        counters.counter_unbound_1d.write_to_file(outputPath / "1d" /
-                                                  (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"));
-        counters.counter_bound_2d.write_to_file(outputPath / "2d" /
-                                                (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"));
-        counters.counter_unbound_2d.write_to_file(outputPath / "2d" /
-                                                  (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"));
-
-        counters_wt.counter_bound_1d.write_to_file(outputPath / "1d" /
-                                                   (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"));
-        counters_wt.counter_unbound_1d.write_to_file(outputPath / "1d" /
-                                                     (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"));
-        counters_wt.counter_bound_2d.write_to_file(outputPath / "2d" /
-                                                   (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"));
-        counters_wt.counter_unbound_2d.write_to_file(outputPath / "2d" /
-                                                     (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"));
-
-        species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"),
-                                    species_vec, S_bound);
-        species::writeSpeciesToFile(outputPath / "species" /
-                                        (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"),
-                                    species_vec, S_unbound);
-        species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"),
-                                    wtSpecies_vec, wtS_bound);
-        species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"),
-                                    wtSpecies_vec, wtS_unbound);
-
+        writeToFile(outputPath, counters, species_vec, errors_lib1, S_bound, S_unbound, utils::SampleID::mut_bound,
+                    utils::SampleID::mut_unbound);
+        writeToFile(outputPath, counters, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound, utils::SampleID::wt_bound,
+                    utils::SampleID::wt_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
         std::cout << "Duration: " << diff.count() << " s\n";
@@ -324,39 +312,10 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-
-        // create for each barcode a textfile and write the counts into the files
-        counters_bound.counter_bound_1d.write_to_file(outputPath / "1d" /
-                                                      (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"));
-        counters_bound.counter_unbound_1d.write_to_file(
-            outputPath / "1d" / (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"));
-        counters_bound.counter_bound_2d.write_to_file(outputPath / "2d" /
-                                                      (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"));
-        counters_bound.counter_unbound_2d.write_to_file(
-            outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"));
-
-        counters_unbound.counter_bound_1d.write_to_file(
-            outputPath / "1d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"));
-        counters_unbound.counter_unbound_1d.write_to_file(
-            outputPath / "1d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"));
-        counters_unbound.counter_bound_2d.write_to_file(
-            outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"));
-        counters_unbound.counter_unbound_2d.write_to_file(
-            outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"));
-
-        species::writeSpeciesToFile(outputPath / "species" /
-                                        (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"),
-                                    species_vec_b, S_bound_bound);
-        species::writeSpeciesToFile(outputPath / "species" /
-                                        (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"),
-                                    species_vec_b, S_bound_unbound);
-        species::writeSpeciesToFile(outputPath / "species" /
-                                        (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"),
-                                    species_vec_u, S_unbound_bound);
-        species::writeSpeciesToFile(outputPath / "species" /
-                                        (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"),
-                                    species_vec_u, S_unbound_unbound);
-
+        writeToFile(outputPath, counters_bound, species_vec_b, errors_lib1, S_bound_bound, S_bound_unbound,
+                    utils::SampleID::mut_bound_bound, utils::SampleID::mut_bound_unbound);
+        writeToFile(outputPath, counters_unbound, species_vec_u, errors_lib2, S_unbound_bound, S_unbound_unbound,
+                    utils::SampleID::mut_unbound_bound, utils::SampleID::mut_unbound_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
         std::cout << "Duration: " << diff.count() << " s\n";
