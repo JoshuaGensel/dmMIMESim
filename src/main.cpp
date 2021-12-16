@@ -132,6 +132,16 @@ runSelection(species::species_map species_vec, const constants::Constants& param
     return std::make_tuple(counters, S_bound, S_unbound);
 }
 
+std::tuple<std::vector<std::set<Mutation>>, std::vector<std::set<Mutation>>>
+splitErrorPerPool(std::vector<std::set<Mutation>>& errors, std::valarray<unsigned int>& S_bound)
+{
+    int n = S_bound.sum();
+    std::vector<std::set<Mutation>> errorsBound(errors.begin(), errors.begin() + n);
+    std::vector<std::set<Mutation>> errorsUnbound(errors.begin() + n, errors.end());
+
+    return std::make_tuple(errorsBound, errorsUnbound);
+}
+
 void writeToFile(fs::path outputPath, count::counter_collection& counter, species::species_map& species_vec,
                  std::vector<std::set<Mutation>>& errors, std::valarray<unsigned int>& S_bound,
                  std::valarray<unsigned int>& S_unbound, utils::SampleID boundID, utils::SampleID unboundID)
@@ -144,6 +154,15 @@ void writeToFile(fs::path outputPath, count::counter_collection& counter, specie
     species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(boundID) + ".txt"), species_vec, S_bound);
     species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
                                 S_unbound);
+
+    auto splittedErrors = splitErrorPerPool(errors, S_bound);
+    auto errorsBound = std::get<0>(splittedErrors);
+    auto errorsUnbound = std::get<1>(splittedErrors);
+
+    species::writeSequencesToFile(outputPath / "sequences" / (utils::SampleIDStr(boundID) + ".txt"), species_vec,
+                                  errorsBound, S_bound);
+    species::writeSequencesToFile(outputPath / "sequences" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
+                                  errorsUnbound, S_unbound);
 }
 
 int main(int argc, const char* argv[])
@@ -217,10 +236,11 @@ int main(int argc, const char* argv[])
     // create an instance of the random number generator
     Generator::create_instance(cons.SEED);
 
-    // create subdirectories for the single and double mutant counts
+    // create subdirectories for the single and double mutant counts, species and sequences
     fs::create_directory(outputPath / "2d");
     fs::create_directory(outputPath / "1d");
     fs::create_directory(outputPath / "species");
+    fs::create_directory(outputPath / "sequences");
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
