@@ -68,8 +68,7 @@ std::valarray<count_type> UnboundProtein::getSpeciesCounts(const species::specie
  */
 count_type drawBinomialNumber(const unsigned int N, const double p)
 {
-    // const auto seed = static_cast<count_type>(std::chrono::system_clock::now().time_since_epoch().count());
-    const auto seed = static_cast<count_type>(0);
+    const auto seed = static_cast<count_type>(std::chrono::system_clock::now().time_since_epoch().count());
     std::default_random_engine generator(seed);
     std::binomial_distribution<int> bino(N, p);
     return bino(generator);
