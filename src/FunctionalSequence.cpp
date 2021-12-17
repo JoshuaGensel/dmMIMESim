@@ -4,13 +4,12 @@
 
 #include "Constants.hpp"
 #include "FunctionalSequence.hpp"
+#include "Generator.hpp"
 #include "Species.hpp"
 
 #include <algorithm>
-#include <chrono>
 #include <fstream>
 #include <iostream>
-#include <random>
 
 // Initialize static member instance
 FunctionalSequence* FunctionalSequence::instance = NULL;
@@ -66,8 +65,7 @@ void FunctionalSequence::release_instance()
 std::vector<double> FunctionalSequence::drawKdValues()
 {
     std::vector<double> kds(this->params.SVal);
-    const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
-    std::default_random_engine generator(seed);
+    std::default_random_engine& generator = Generator::get_instance()->engine;
     std::bernoulli_distribution bd(this->params.P_EFFECT);
     std::lognormal_distribution<double> lnd(0, 1);
     for (int i = 0; i < kds.size(); ++i)
@@ -100,8 +98,7 @@ std::vector<double> FunctionalSequence::readKdValues(const std::string& inputPat
 std::vector<double> FunctionalSequence::drawEpistasis()
 {
     std::vector<double> epistasis(this->params.PWVal);
-    const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
-    std::default_random_engine generator(seed);
+    std::default_random_engine& generator = Generator::get_instance()->engine;
     std::bernoulli_distribution bd(this->params.P_EPISTASIS);
     std::lognormal_distribution<double> lnd(0, 1);
     // TODO: Kann epistasis auch vorhanden sein, wenn eine einzelmutation keinen effect hat? (hatte es in R so
