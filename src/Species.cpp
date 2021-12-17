@@ -9,12 +9,12 @@
 #include "Constants.hpp"
 #include "Count.hpp"
 #include "FunctionalSequence.hpp"
+#include "Generator.hpp"
 #include "Species.hpp"
 #include "Utils.hpp"
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -214,8 +214,7 @@ namespace species
 
     species_map drawSpeciesIds(const constants::Constants& params)
     {
-        const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
-        std::default_random_engine generator(seed);
+        std::default_random_engine& generator = Generator::get_instance()->engine;
 
         // contains the map with all sequence species
         species::species_map species_map;
@@ -326,11 +325,9 @@ namespace species
     }
 
     // TODO testen
-    std::set<Mutation> drawError_2(const mutVector& mutations, const constants::Constants& params,
-                                   std::default_random_engine& generator)
+    std::set<Mutation> drawError_2(const mutVector& mutations, const constants::Constants& params)
     {
-        // const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
-        // std::default_random_engine generator (seed);
+        std::default_random_engine& generator = Generator::get_instance()->engine;
         std::binomial_distribution<int> bino(params.L, params.P_ERR);
         // random generator for the position with an error
         std::uniform_int_distribution<> unif_err(1, params.L);
@@ -500,15 +497,10 @@ namespace species
     void countErrors(const unsigned int S, const mutVector& mutatedPositions, const constants::Constants& params,
                      count::counter_1& counter_1d, count::counter_2& counter_2d)
     {
-        // set up the random generator (note: when it is created in every call, the statistics are messed up (pseudo
-        // random))
-        const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
-        std::default_random_engine generator(seed);
-
         // sample error for all sequences of the bound / unbound fraction
         for (int b = 0; b < S; ++b)
         {
-            auto uniquePositions = drawError_2(mutatedPositions, params, generator);
+            auto uniquePositions = drawError_2(mutatedPositions, params);
             if (uniquePositions.size() > 0)
             {
                 // if a real mutation has error, the according symbol need to be updated. In case it turns into wild

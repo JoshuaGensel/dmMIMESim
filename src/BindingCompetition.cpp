@@ -3,10 +3,8 @@
 //
 
 #include "BindingCompetition.hpp"
+#include "Generator.hpp"
 #include "cppoptlib/solver/lbfgsbsolver.h"
-
-#include <chrono>
-#include <random>
 
 // TODO weg -> wieso?
 std::valarray<kd_type> UnboundProtein::getSpeciesKds(const species::species_map& spec)
@@ -68,8 +66,7 @@ std::valarray<count_type> UnboundProtein::getSpeciesCounts(const species::specie
  */
 count_type drawBinomialNumber(const unsigned int N, const double p)
 {
-    const auto seed = static_cast<count_type>(std::chrono::system_clock::now().time_since_epoch().count());
-    std::default_random_engine generator(seed);
+    std::default_random_engine& generator = Generator::get_instance()->engine;
     std::binomial_distribution<int> bino(N, p);
     return bino(generator);
 }

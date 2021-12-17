@@ -10,6 +10,7 @@
 #include "Constants.hpp"
 #include "Count.hpp"
 #include "FunctionalSequence.hpp"
+#include "Generator.hpp"
 #include "Species.hpp"
 #include "Utils.hpp"
 
@@ -198,6 +199,9 @@ int main(int argc, const char* argv[])
     const constants::Constants& cons = constants::readParameters(outputPath);
     constants::writeParameters(cons);
     std::cout << "MaxMut " << cons.MAX_MUT << std::endl;
+
+    // create an instance of the random number generator
+    Generator::create_instance(cons.SEED);
 
     // create subdirectories for the single and double mutant counts
     fs::create_directory(outputPath / "2d");
