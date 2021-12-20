@@ -298,8 +298,8 @@ namespace species
         return count;
     }
 
-    void write_to_file(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
-                       const std::string& header)
+    void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
+                            const std::string& header)
     {
         std::ofstream outfile(out_file);
 

@@ -270,14 +270,15 @@ int main(int argc, const char* argv[])
         counters_wt.counter_unbound_2d.write_to_file(outputPath / "2d" /
                                                      (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"));
 
-        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"),
-                               species_vec, S_bound);
-        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"),
-                               species_vec, S_unbound);
-        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"),
-                               wtSpecies_vec, wtS_bound);
-        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"),
-                               wtSpecies_vec, wtS_unbound);
+        species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_bound) + ".txt"),
+                                    species_vec, S_bound);
+        species::writeSpeciesToFile(outputPath / "species" /
+                                        (utils::SampleIDStr(utils::SampleID::mut_unbound) + ".txt"),
+                                    species_vec, S_unbound);
+        species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_bound) + ".txt"),
+                                    wtSpecies_vec, wtS_bound);
+        species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::wt_unbound) + ".txt"),
+                                    wtSpecies_vec, wtS_unbound);
 
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
@@ -323,17 +324,18 @@ int main(int argc, const char* argv[])
         counters_unbound.counter_unbound_2d.write_to_file(
             outputPath / "2d" / (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"));
 
-        species::write_to_file(outputPath / "species" / (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"),
-                               species_vec_b, S_bound_bound);
-        species::write_to_file(outputPath / "species" /
-                                   (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"),
-                               species_vec_b, S_bound_unbound);
-        species::write_to_file(outputPath / "species" /
-                                   (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"),
-                               species_vec_u, S_unbound_bound);
-        species::write_to_file(outputPath / "species" /
-                                   (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"),
-                               species_vec_u, S_unbound_unbound);
+        species::writeSpeciesToFile(outputPath / "species" /
+                                        (utils::SampleIDStr(utils::SampleID::mut_bound_bound) + ".txt"),
+                                    species_vec_b, S_bound_bound);
+        species::writeSpeciesToFile(outputPath / "species" /
+                                        (utils::SampleIDStr(utils::SampleID::mut_bound_unbound) + ".txt"),
+                                    species_vec_b, S_bound_unbound);
+        species::writeSpeciesToFile(outputPath / "species" /
+                                        (utils::SampleIDStr(utils::SampleID::mut_unbound_bound) + ".txt"),
+                                    species_vec_u, S_unbound_bound);
+        species::writeSpeciesToFile(outputPath / "species" /
+                                        (utils::SampleIDStr(utils::SampleID::mut_unbound_unbound) + ".txt"),
+                                    species_vec_u, S_unbound_unbound);
 
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
