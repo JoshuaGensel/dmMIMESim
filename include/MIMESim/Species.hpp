@@ -156,12 +156,21 @@ namespace species
 
     std::set<Mutation> drawError_2(const constants::Constants& params);
 
-    void countErrors(const unsigned int S, const mutVector& mutatedPositions, const constants::Constants& params,
-                     count::counter_1& counter_1d, count::counter_2& counter_2d);
+    // draws params.M error Mutation sets
+    std::vector<std::set<Mutation>> drawErrors(const constants::Constants& params);
 
-    count::counter_collection countMutationsWithErrors(const std::valarray<unsigned int>& SBound,
-                                                       const std::valarray<unsigned int>& SUnbound,
-                                                       const species_map& spec_map, const constants::Constants& params);
+    // first S_bound.size() entries in errors are applied to the bound counters, last S_unbound.size() to the unbound
+    // counters
+    void countErrors(std::vector<std::set<Mutation>> errors, species_map& species_vec,
+                     std::valarray<unsigned int>& S_bound, std::valarray<unsigned int>& S_unbound,
+                     count::counter_collection& counter);
+
+    void countErrors_oneSeq(std::set<Mutation> uniquePositions, const mutVector& mutatedPositions,
+                            count::counter_1& counter_1d, count::counter_2& counter_2d);
+
+    count::counter_collection countMutations(const std::valarray<unsigned int>& SBound,
+                                             const std::valarray<unsigned int>& SUnbound, const species_map& spec_map,
+                                             const constants::Constants& params);
 
     species_map combineSpecies(species_map firstSpec, species_map secondSpec, const constants::Constants& firstParams,
                                const constants::Constants& secondParams);

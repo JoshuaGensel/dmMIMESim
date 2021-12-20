@@ -115,7 +115,7 @@ runSelection(species::species_map species_vec, const constants::Constants& param
     std::chrono::duration<double> diff = end - start;
     std::cout << "Duration: " << diff.count() << " s\n";
 
-    std::cout << "****** Add noise and Count *******" << std::endl;
+    std::cout << "****** Count *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
     // Carefull: The map is extended by species that occur only because of sequencing error, hence the length of
     // S_bound and S_unbound dont fit any more with the length of the map
@@ -123,7 +123,7 @@ runSelection(species::species_map species_vec, const constants::Constants& param
     // TODO weg
     // species::addCountsWithError(S_bound, S_unbound, species_vec);
 
-    auto counters = species::countMutationsWithErrors(S_bound, S_unbound, species_vec, params);
+    auto counters = species::countMutations(S_bound, S_unbound, species_vec, params);
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
@@ -223,6 +223,10 @@ int main(int argc, const char* argv[])
     diff = end - start;
     std::cout << "Duration: " << diff.count() << " s\n";
 
+    // Draw errors for both libraries
+    auto errors_lib1 = species::drawErrors(cons);
+    auto errors_lib2 = species::drawErrors(cons);
+
     // first round of mutagenesis
     if (!use_inputPath)
     {
@@ -247,6 +251,14 @@ int main(int argc, const char* argv[])
         count::counter_collection counters_wt = std::get<0>(wtResults);
         std::valarray<unsigned int> wtS_bound = std::get<1>(wtResults);
         std::valarray<unsigned int> wtS_unbound = std::get<2>(wtResults);
+
+        std::cout << "****** Add errors to counts *******" << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        countErrors(errors_lib1, species_vec, S_bound, S_unbound, counters);
+        countErrors(errors_lib2, wtSpecies_vec, wtS_bound, wtS_unbound, counters_wt);
+        end = std::chrono::high_resolution_clock::now();
+        diff = end - start;
+        std::cout << "Duration: " << diff.count() << " s\n";
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
@@ -301,6 +313,14 @@ int main(int argc, const char* argv[])
         count::counter_collection counters_unbound = std::get<0>(results_unbound);
         std::valarray<unsigned int> S_unbound_bound = std::get<1>(results_unbound);
         std::valarray<unsigned int> S_unbound_unbound = std::get<2>(results_unbound);
+
+        std::cout << "****** Add errors to counts *******" << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        countErrors(errors_lib1, species_vec_b, S_bound_bound, S_bound_unbound, counters_bound);
+        countErrors(errors_lib2, species_vec_u, S_unbound_bound, S_unbound_unbound, counters_unbound);
+        end = std::chrono::high_resolution_clock::now();
+        diff = end - start;
+        std::cout << "Duration: " << diff.count() << " s\n";
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();

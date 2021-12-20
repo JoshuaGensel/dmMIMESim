@@ -435,6 +435,18 @@ namespace species
         return uniquePositions;
     }
 
+    std::vector<std::set<Mutation>> drawErrors(const constants::Constants& params)
+    {
+        std::vector<std::set<Mutation>> errors;
+        errors.reserve(params.M);
+
+        for (int i = 0; i < params.M; ++i)
+        {
+            errors.push_back(drawError_2(params));
+        }
+        return errors;
+    }
+
     // TODO: rekursiver Aufruf? Aber dafür müsste jedesmal für irgendein L' (Restlänger nach aktueller Position) die ID
     // ranges berechnet werden, oder mache ich das eh?
     mutVector specIdxToMutPos(const unsigned long long specId, const constants::Constants& params)
@@ -571,63 +583,105 @@ namespace species
         return (low_it - std::begin(params.NMUT_RANGE));
     }
 
-    void countErrors(const unsigned int S, const mutVector& mutatedPositions, const constants::Constants& params,
-                     count::counter_1& counter_1d, count::counter_2& counter_2d)
+    void countErrors(std::vector<std::set<Mutation>> errors, species_map& species_vec,
+                     std::valarray<unsigned int>& S_bound, std::valarray<unsigned int>& S_unbound,
+                     count::counter_collection& counter)
     {
-        // sample error for all sequences of the bound / unbound fraction
-        for (int b = 0; b < S; ++b)
+        int errIdx = 0;
+        int specIdx = 0;
+        for (auto it = species_vec.begin(); it != species_vec.end(); ++it)
         {
-            auto uniquePositions = drawError_2(params);
-            if (uniquePositions.size() > 0)
+            // species occures in bound pool
+            if (S_bound[specIdx] > 0)
             {
-                // if a real mutation has error, the according symbol need to be updated. In case it turns into wild
-                // type delete it
-                for (const auto& mut : mutatedPositions)
+                mutVector mutatedPositions = it->second.getMutatedPositions();
+
+                // loop over #occurences in bound pool
+                for (int i = 0; i != S_bound[specIdx]; ++i)
                 {
-                    auto it = uniquePositions.find(mut);
-                    if (it != uniquePositions.end())
+                    std::set<Mutation> uniquePositions = errors[errIdx];
+                    countErrors_oneSeq(uniquePositions, mutatedPositions, counter.counter_bound_1d,
+                                       counter.counter_bound_2d);
+                    ++errIdx;
+                }
+            }
+
+            ++specIdx;
+        }
+
+        // reset specIdx and loop through species_vec one more time for unbound pool
+        specIdx = 0;
+        for (auto it = species_vec.begin(); it != species_vec.end(); ++it)
+        {
+            // species occures in undbound pool
+            if (S_unbound[specIdx] > 0)
+            {
+                mutVector mutatedPositions = it->second.getMutatedPositions();
+
+                // loop over #occurences in unbound pool
+                for (int i = 0; i != S_unbound[specIdx]; ++i)
+                {
+                    std::set<Mutation> uniquePositions = errors[errIdx];
+                    countErrors_oneSeq(uniquePositions, mutatedPositions, counter.counter_unbound_1d,
+                                       counter.counter_unbound_2d);
+                    ++errIdx;
+                }
+            }
+            ++specIdx;
+        }
+    }
+
+    void countErrors_oneSeq(std::set<Mutation> uniquePositions, const mutVector& mutatedPositions,
+                            count::counter_1& counter_1d, count::counter_2& counter_2d)
+    {
+        if (uniquePositions.size() > 0)
+        {
+            // if a real mutation has error, the according symbol need to be updated. In case it turns into wild
+            // type delete it
+            for (const auto& mut : mutatedPositions)
+            {
+                auto it = uniquePositions.find(mut);
+                if (it != uniquePositions.end())
+                {
+                    //+1 because symbols start from 1, +1 because wt is 1
+                    auto mutSymbol = mut.getSymbol() + 2;
+                    auto errorSymbol = it->getSymbol() + 2;
+                    counter_1d.decrement(mut.getPosition(), mutSymbol);
+                    counter_2d.count(mut.getPosition(), mutSymbol, -1);
+                    // in case the real mutations symbol is drawn, read it as wild type and correct the count (erase
+                    // from rest of errors)
+                    if (errorSymbol == mutSymbol)
                     {
-                        //+1 because symbols start from 1, +1 because wt is 1
-                        auto mutSymbol = mut.getSymbol() + 2;
-                        auto errorSymbol = it->getSymbol() + 2;
-                        counter_1d.decrement(mut.getPosition(), mutSymbol);
-                        counter_2d.count(mut.getPosition(), mutSymbol, -1);
-                        // in case the real mutations symbol is drawn, read it as wild type and correct the count (erase
-                        // from rest of errors)
-                        if (errorSymbol == mutSymbol)
-                        {
-                            counter_1d.increment(mut.getPosition(), 1);
-                            counter_2d.count(mut.getPosition(), 1, 1);
-                        }
-                        else
-                        {
-                            // otherwise replace with new mutation
-                            counter_1d.increment(mut.getPosition(), errorSymbol);
-                            counter_2d.count(mut.getPosition(), errorSymbol, 1);
-                        }
-                        uniquePositions.erase(it);
+                        counter_1d.increment(mut.getPosition(), 1);
+                        counter_2d.count(mut.getPosition(), 1, 1);
                     }
+                    else
+                    {
+                        // otherwise replace with new mutation
+                        counter_1d.increment(mut.getPosition(), errorSymbol);
+                        counter_2d.count(mut.getPosition(), errorSymbol, 1);
+                    }
+                    uniquePositions.erase(it);
                 }
+            }
 
-                // add errors to count
-                for (const auto& err : uniquePositions)
-                {
-                    auto errorSymbol = err.getSymbol() + 2;
+            // add errors to count
+            for (const auto& err : uniquePositions)
+            {
+                auto errorSymbol = err.getSymbol() + 2;
 
-                    counter_1d.decrement(err.getPosition(), 1);
-                    counter_1d.increment(err.getPosition(), errorSymbol);
+                counter_1d.decrement(err.getPosition(), 1);
+                counter_1d.increment(err.getPosition(), errorSymbol);
 
-                    counter_2d.count(err.getPosition(), 1, -1);
-                    counter_2d.count(err.getPosition(), errorSymbol, 1);
-                }
+                counter_2d.count(err.getPosition(), 1, -1);
+                counter_2d.count(err.getPosition(), errorSymbol, 1);
             }
         }
     }
 
-    // TODO neu: count directlly all mutations and adding errors
-    count::counter_collection countMutationsWithErrors(const std::valarray<unsigned int>& SBound,
-                                                       const std::valarray<unsigned int>& SUnbound,
-                                                       const species_map& spec_map, const constants::Constants& params)
+    count::counter_collection countMutations(const std::valarray<unsigned int>& SBound,
+                                             const std::valarray<unsigned int>& SUnbound, const species_map& spec_map,
+                                             const constants::Constants& params)
     {
         // to get the correct counts from the valarrays increment the index
 
@@ -687,13 +741,6 @@ namespace species
                                                       (*mutIt).getSymbol() + 2, 1, -SUnbound[specIdx]);
                 }
             }
-
-            // sample error for bound sequences
-            countErrors(SBound[specIdx], it->second.getMutatedPositions(), it->second.getParams(),
-                        counters.counter_bound_1d, counters.counter_bound_2d);
-            countErrors(SUnbound[specIdx], it->second.getMutatedPositions(), it->second.getParams(),
-                        counters.counter_unbound_1d, counters.counter_unbound_2d);
-
             ++specIdx;
             // spec_map.erase(it++);
         }
