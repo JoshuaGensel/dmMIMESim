@@ -89,6 +89,9 @@ namespace species
 
         void computeSpeciesKd();
 
+        // generate nt sequence based on mutated positions and optional errors
+        std::valarray<char> getSequence(std::set<Mutation> errors = {});
+
         // TODO weg
         // const ref::ref_map &getRead() const;
         // ref::ref_map createRead();
@@ -147,6 +150,9 @@ namespace species
      */
     void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
                             const std::string& header = "speciesID\tcount\n");
+
+    void writeSequencesToFile(const std::string& out_file, species_map& spec_map,
+                              std::vector<std::set<Mutation>> errors, std::valarray<unsigned int> S_pool);
 
     std::set<Mutation> drawError_2(const mutVector& mutations, const constants::Constants& params);
 

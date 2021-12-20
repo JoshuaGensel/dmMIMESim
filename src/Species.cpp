@@ -117,6 +117,55 @@ namespace species
     //        return read;
     //    }
 
+    std::valarray<char> Species::getSequence(std::set<Mutation> errors)
+    {
+        std::map<const unsigned int, char> mutMap = {
+            {0, 'C'},
+            {1, 'G'},
+            {2, 'T'},
+        };
+
+        std::valarray<char> sequence('A', this->params.L);
+        for (Mutation mut : this->mutatedPositions)
+        {
+            sequence[mut.getPosition() - 1] = mutMap[mut.getSymbol()];
+        }
+
+        if (errors.size() > 0)
+        {
+            // if a real mutation has error, the according symbol need to be updated. In case it turns into wild
+            // type delete it
+            for (const auto& mut : this->mutatedPositions)
+            {
+                auto it = errors.find(mut);
+                if (it != errors.end())
+                {
+                    auto mutSymbol = mut.getSymbol();
+                    auto errorSymbol = it->getSymbol();
+                    // in case the real mutations symbol is drawn, read it as wild type and correct the count (erase
+                    // from rest of errors)
+                    if (errorSymbol == mutSymbol)
+                    {
+                        sequence[mut.getPosition() - 1] = 'A';
+                    }
+                    else
+                    {
+                        // otherwise replace with new mutation
+                        sequence[mut.getPosition() - 1] = mutMap[errorSymbol];
+                    }
+                    errors.erase(it);
+                }
+            }
+
+            // add remaining errors
+            for (const auto& err : errors)
+            {
+                sequence[err.getPosition() - 1] = mutMap[err.getSymbol()];
+            }
+        }
+        return sequence;
+    }
+
     unsigned int Species::getMutCountBound() const
     {
         return mutCountBound;
@@ -318,6 +367,34 @@ namespace species
                     outfile << it->first;
                     // print number of sequences in pool
                     outfile << '\t' << S_pool[specIdx] << '\n';
+                }
+                ++specIdx;
+            }
+        }
+    }
+
+    void writeSequencesToFile(const std::string& out_file, species_map& spec_map,
+                              std::vector<std::set<Mutation>> errors, std::valarray<unsigned int> S_pool)
+    {
+        std::ofstream outfile(out_file);
+        if (outfile.good())
+        {
+            int specIdx = 0;
+            int errIdx = 0;
+            for (auto it = spec_map.begin(); it != spec_map.end(); ++it)
+            {
+                // only include non-zero occurences
+                while (S_pool[specIdx] > 0)
+                {
+                    // print sequence string
+                    std::string sequence;
+                    for (char c : it->second.getSequence(errors[errIdx]))
+                    {
+                        sequence.push_back(c);
+                    }
+                    outfile << sequence << '\n';
+                    --S_pool[specIdx];
+                    ++errIdx;
                 }
                 ++specIdx;
             }
