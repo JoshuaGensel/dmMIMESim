@@ -23,20 +23,20 @@
 
 namespace species
 {
-    Species::Species(const unsigned int id)
-        : specId(id), numMut(getNumberOfMutationsById()), mutatedPositions(specIdxToMutPos()), count(0),
+    Species::Species(const unsigned int id, const constants::Constants& param)
+        : specId(id), params(param), numMut(getNumberOfMutationsById()), mutatedPositions(specIdxToMutPos()), count(0),
           mutCountBound(0), mutCountUnbound(0), errorCountBound(0.0), errorCountUnbound(0.0)
     {
     }
 
     unsigned int Species::getNumberOfMutationsById()
     {
-        return species::getNumberOfMutationsById(this->specId);
+        return species::getNumberOfMutationsById(this->specId, this->params);
     }
 
     mutVector Species::specIdxToMutPos()
     {
-        return species::specIdxToMutPos(this->specId);
+        return species::specIdxToMutPos(this->specId, this->params);
     }
 
     // TODO weg
@@ -68,6 +68,11 @@ namespace species
         return specId;
     }
 
+    const constants::Constants& Species::getParams() const
+    {
+        return params;
+    }
+
     unsigned int Species::getCount() const
     {
         return count;
@@ -85,8 +90,7 @@ namespace species
 
     double Species::getFreq() const
     {
-        constants::Constants& c = constants::Constants::get_instance();
-        return this->count / double(c.M);
+        return this->count / double(this->params.M);
     }
 
     double Species::getKd() const
@@ -160,14 +164,12 @@ namespace species
 
     double Species::getTotalFractionBound()
     {
-        constants::Constants& c = constants::Constants::get_instance();
-        return mutCountBound / double(c.M);
+        return mutCountBound / double(this->params.M);
     }
 
     double Species::getTotalFractionUnbound()
     {
-        constants::Constants& c = constants::Constants::get_instance();
-        return mutCountUnbound / double(c.M);
+        return mutCountUnbound / double(this->params.M);
     }
 
     double Species::getFractionBound()
@@ -182,15 +184,14 @@ namespace species
 
     void Species::computeSpeciesKd()
     {
-        FunctionalSequence& effects = FunctionalSequence::get_instance();
-        constants::Constants& c = constants::Constants::get_instance();
+        FunctionalSequence* effects = FunctionalSequence::get_instance();
         Species::kd = 1.0;
         // TODO nachfragen: wie setzt sich der Gesamteffekt zusammen? prod(Kd_i)*prod(e_ij) ?  oder prod(e_ij^2)?
         // additive effect of epistasis (since we have the exponential of the epistasis here, it is multiplicative
         for (auto mutPos1_it = begin(Species::mutatedPositions); mutPos1_it != end(Species::mutatedPositions);
              ++mutPos1_it)
         {
-            Species::kd *= effects.getKd(*mutPos1_it);
+            Species::kd *= effects->getKd(*mutPos1_it);
             // std::cout << "mut pos1 " << *mutPos1_it << std::endl;
             for (auto mutPos2_it = mutPos1_it + 1;
                  mutPos1_it != Species::mutatedPositions.end() && mutPos2_it != Species::mutatedPositions.end();
@@ -198,17 +199,16 @@ namespace species
             {
                 // std::cout << "mut pos2 " << *mutPos2_it << std::endl;
                 // compute the kd for a species by multiplying all single kds of the mutations and add the pairwise
-                // epistasis factor totalEpistasisPerPos[*mutPos1_it-1] *= effects.getEpistasis(*mutPos1_it-1,
-                // *mutPos2_it-1); totalEpistasisPerPos[*mutPos2_it-1] *= effects.getEpistasis(*mutPos1_it-1,
+                // epistasis factor totalEpistasisPerPos[*mutPos1_it-1] *= effects->getEpistasis(*mutPos1_it-1,
+                // *mutPos2_it-1); totalEpistasisPerPos[*mutPos2_it-1] *= effects->getEpistasis(*mutPos1_it-1,
                 // *mutPos2_it-1);
-                Species::kd *= effects.getEpistasis(*mutPos1_it, *mutPos2_it);
+                Species::kd *= effects->getEpistasis(*mutPos1_it, *mutPos2_it);
             }
         }
     }
 
-    species::species_map drawSpeciesIds()
+    species::species_map drawSpeciesIds(const constants::Constants& params)
     {
-        auto& constants = constants::Constants::get_instance();
         // const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
         const auto seed = static_cast<unsigned int>(0);
         std::default_random_engine generator(seed);
@@ -218,18 +218,18 @@ namespace species
 
         // Break down the drawing of all possible (allowed) species ids into 2 smaller ones:
         // first draw a the number of mutations from 0 to MAX_MUT, with the given probabilities...
-        std::discrete_distribution<> d(begin(constants.P_NMUT), end(constants.P_NMUT));
+        std::discrete_distribution<> d(begin(params.P_NMUT), end(params.P_NMUT));
         // then draw uniformly the id from the id range for this particular number of mutations
-        std::vector<std::uniform_int_distribution<>> unif(constants.MAX_MUT);
+        std::vector<std::uniform_int_distribution<>> unif(params.MAX_MUT + 1);
 
         // create distributions for all numbers of mutations beforehand
-        for (int numMut = 1; numMut <= constants.MAX_MUT; ++numMut)
+        for (int numMut = 1; numMut <= params.MAX_MUT + 1; ++numMut)
         {
             unif[numMut - 1] =
-                std::uniform_int_distribution<>(constants.NMUT_RANGE[numMut - 1] + 1, constants.NMUT_RANGE[numMut]);
+                std::uniform_int_distribution<>(params.NMUT_RANGE[numMut - 1] + 1, params.NMUT_RANGE[numMut]);
         }
         // count the given species
-        for (int n = 0; n < constants.M; ++n)
+        for (int n = 0; n < params.M; ++n)
         {
             // draw number of mutations
             const int numMut = d(generator);
@@ -241,7 +241,7 @@ namespace species
             }
             // create new object if not yet present (return value gives iterator and flag if insertion happened)
             // the id is the key for the map, and also the parameter for the constructor for the species class
-            auto currentEntry = species_map.try_emplace(id, id);
+            auto currentEntry = species_map.try_emplace(id, id, params);
             if (currentEntry.second)
                 currentEntry.first->second.computeSpeciesKd();
             currentEntry.first->second.incrementCount();
@@ -255,8 +255,8 @@ namespace species
         return species_map;
     }
 
-    void write_to_file(const std::string &out_file, species_map &spec_map, std::valarray<unsigned int> &S_pool,
-                       const std::string &header)
+    void write_to_file(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
+                       const std::string& header)
     {
         std::ofstream outfile(out_file);
 
@@ -282,23 +282,23 @@ namespace species
     }
 
     // TODO testen
-    std::set<Mutation> drawError_2(const mutVector& mutations, std::default_random_engine& generator)
+    std::set<Mutation> drawError_2(const mutVector& mutations, const constants::Constants& params,
+                                   std::default_random_engine& generator)
     {
-        auto& constants = constants::Constants::get_instance();
         // const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
         // std::default_random_engine generator (seed);
-        std::binomial_distribution<int> bino(constants.L, constants.P_ERR);
+        std::binomial_distribution<int> bino(params.L, params.P_ERR);
         // random generator for the position with an error
-        std::uniform_int_distribution<> unif_err(1, constants.L);
+        std::uniform_int_distribution<> unif_err(1, params.L);
         // random generator for the mutated symbol (if sequence symbol is wt, the errror is one of the mutations;
         //  if the sequence symbol is mutated, the according symbol is the wild type or one of the other mutations
-        std::uniform_int_distribution<> unif_sym(0, constants.Q - 1 - 1);
+        std::uniform_int_distribution<> unif_sym(0, params.Q - 1 - 1);
 
         // draw number of errors
         int numErrors = bino(generator);
 
         // TODO: mal weg lassen, da ich ja eh keine species berechne
-        // numErrors = std::min<int>(numErrors, constants.MAX_MUT*2 - mutations.size());
+        // numErrors = std::min<int>(numErrors, params.MAX_MUT*2 - mutations.size());
 
         // containing numErrors Mutations with unique position
         std::set<Mutation> uniquePositions;
@@ -319,24 +319,23 @@ namespace species
 
     // TODO: rekursiver Aufruf? Aber dafür müsste jedesmal für irgendein L' (Restlänger nach aktueller Position) die ID
     // ranges berechnet werden, oder mache ich das eh?
-    mutVector specIdxToMutPos(const unsigned specId)
+    mutVector specIdxToMutPos(const unsigned specId, const constants::Constants& params)
     {
-        constants::Constants& constants = constants::Constants::get_instance();
-        auto numMut = getNumberOfMutationsById(specId);
+        auto numMut = getNumberOfMutationsById(specId, params);
         // collect the mutated position with the respective mutation symbol
         mutVector mutPos;
         mutPos.reserve(numMut);
 
         // check if Id is valid
-        if (specId <= constants.NMUT_RANGE.back() && numMut > 0)
+        if (specId <= params.NMUT_RANGE.back() && numMut > 0)
         {
-            unsigned int Lact = constants.L;
+            unsigned int Lact = params.L;
             unsigned int numMutAct = numMut;
-            auto mSymbols = constants.Q - 1;
+            auto mSymbols = params.Q - 1;
 
             // get the id within the range of number of mutations (substract the ids for the sequences with less
             // mutations)
-            unsigned int idAct = specId - constants.NMUT_RANGE[numMut - 1];
+            unsigned int idAct = specId - params.NMUT_RANGE[numMut - 1];
 
             // determine each mutations position seen from the mutations position before...
             for (unsigned int m = 0; m < numMut; ++m)
@@ -397,16 +396,15 @@ namespace species
     }
 
     // TODO testen! (vorallem das mit partial sum)
-    unsigned mutPosToSpecIdx(const mutVector& mutPos)
+    unsigned mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params)
     {
-        constants::Constants& constants = constants::Constants::get_instance();
         unsigned numMut = mutPos.size();
         // id for 0 mutations is 1
         unsigned specId = 1;
         if (numMut > 0)
         {
             // add the ids for the sequences with less mutations
-            specId = constants.NMUT_RANGE[numMut - 1];
+            specId = params.NMUT_RANGE[numMut - 1];
             mutVector mutPos_new = mutPos;
             // get the indices for the individual length segments for each position
             std::partial_sum(mutPos.begin(), mutPos.end(), mutPos_new.begin(),
@@ -417,7 +415,7 @@ namespace species
             //             for(unsigned i = 1; i<mutPos_new.size(); ++i) {
             //                 mutPos_new[i].getPosition() -= mutPos[i-1].getPosition();
             //             }
-            unsigned Lact = constants.L;
+            unsigned Lact = params.L;
             unsigned numMutAct = numMut;
 
             // Notiz an mich selbst: enforcing const elements in range iteration (C++17)
@@ -436,7 +434,7 @@ namespace species
                         for (int i = 1; i < mutation.getPosition(); ++i)
                         {
                             // specId += utils::nChoosek(Lact-i, numMutAct-1);
-                            specId += utils::nChoosek(Lact - i, numMutAct - 1) * pow(constants.Q - 1, numMutAct);
+                            specId += utils::nChoosek(Lact - i, numMutAct - 1) * pow(params.Q - 1, numMutAct);
                         }
                     }
                     Lact -= mutation.getPosition();
@@ -448,16 +446,15 @@ namespace species
         return specId;
     }
 
-    unsigned getNumberOfMutationsById(const unsigned specId)
+    unsigned getNumberOfMutationsById(const unsigned specId, const constants::Constants& params)
     {
-        constants::Constants& constants = constants::Constants::get_instance();
         // gives the index where the content is still lower than the given id
-        auto low_it = std::lower_bound(std::begin(constants.NMUT_RANGE), std::end(constants.NMUT_RANGE), specId);
-        return (low_it - std::begin(constants.NMUT_RANGE));
+        auto low_it = std::lower_bound(std::begin(params.NMUT_RANGE), std::end(params.NMUT_RANGE), specId);
+        return (low_it - std::begin(params.NMUT_RANGE));
     }
 
-    void countErrors(const unsigned int S, const mutVector& mutatedPositions, count::counter_1& counter_1d,
-                     count::counter_2& counter_2d)
+    void countErrors(const unsigned int S, const mutVector& mutatedPositions, const constants::Constants& params,
+                     count::counter_1& counter_1d, count::counter_2& counter_2d)
     {
         // set up the random generator (note: when it is created in every call, the statistics are messed up (pseudo
         // random))
@@ -468,7 +465,7 @@ namespace species
         // sample error for all sequences of the bound / unbound fraction
         for (int b = 0; b < S; ++b)
         {
-            auto uniquePositions = drawError_2(mutatedPositions, generator);
+            auto uniquePositions = drawError_2(mutatedPositions, params, generator);
             if (uniquePositions.size() > 0)
             {
                 // if a real mutation has error, the according symbol need to be updated. In case it turns into wild
@@ -518,23 +515,22 @@ namespace species
     // TODO neu: count directlly all mutations and adding errors
     count::counter_collection countMutationsWithErrors(const std::valarray<unsigned int>& SBound,
                                                        const std::valarray<unsigned int>& SUnbound,
-                                                       const species_map& spec_map)
+                                                       const species_map& spec_map, const constants::Constants& params)
     {
-        constants::Constants& cons = constants::Constants::get_instance();
         // to get the correct counts from the valarrays increment the index
 
         // containg counter for the bound and unbound fractions
-        auto counters = count::counter_collection(cons.L, cons.Q);
+        auto counters = count::counter_collection(params.L, params.Q);
 
         auto boundSum = SBound.sum();
         auto unboundSum = SUnbound.sum();
 
         // Because the majority is wildtype, count all als wildtype (symbol = 1)....
-        for (unsigned i = 1; i <= cons.L; ++i)
+        for (unsigned i = 1; i <= params.L; ++i)
         {
             counters.counter_bound_1d.count(i, 1, boundSum);
             counters.counter_unbound_1d.count(i, 1, unboundSum);
-            for (unsigned j = i + 1; j <= cons.L && i < cons.L; ++j)
+            for (unsigned j = i + 1; j <= params.L && i < params.L; ++j)
             {
                 counters.counter_bound_2d.count(i, j, 1, 1, boundSum);
                 counters.counter_unbound_2d.count(i, j, 1, 1, unboundSum);
@@ -581,10 +577,10 @@ namespace species
             }
 
             // sample error for bound sequences
-            countErrors(SBound[specIdx], it->second.getMutatedPositions(), counters.counter_bound_1d,
-                        counters.counter_bound_2d);
-            countErrors(SUnbound[specIdx], it->second.getMutatedPositions(), counters.counter_unbound_1d,
-                        counters.counter_unbound_2d);
+            countErrors(SBound[specIdx], it->second.getMutatedPositions(), it->second.getParams(),
+                        counters.counter_bound_1d, counters.counter_bound_2d);
+            countErrors(SUnbound[specIdx], it->second.getMutatedPositions(), it->second.getParams(),
+                        counters.counter_unbound_1d, counters.counter_unbound_2d);
 
             ++specIdx;
             // spec_map.erase(it++);

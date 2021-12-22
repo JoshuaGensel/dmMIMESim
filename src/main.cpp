@@ -106,9 +106,9 @@ int main(int argc, const char* argv[])
     std::cout << "****** Sample mutational effects *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    // Create Ground Truth: Effects of each mutated position and epistatic effects and sequencing noise
-    FunctionalSequence& effects =
-        use_inputPath ? FunctionalSequence::get_instance(inputPath) : FunctionalSequence::get_instance();
+    // Create or load Ground Truth: Effects of each mutated position and epistatic effects and sequencing noise
+    auto* effects =
+        (use_inputPath) ? FunctionalSequence::create_instance(inputPath) : FunctionalSequence::create_instance(cons);
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
@@ -117,7 +117,7 @@ int main(int argc, const char* argv[])
     std::cout << "****** Create species *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
     // Create M species, the map contains the counts for each sampled sequence id
-    species::species_map species_vec = species::drawSpeciesIds();
+    species::species_map species_vec = species::drawSpeciesIds(cons);
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
@@ -137,7 +137,7 @@ int main(int argc, const char* argv[])
     // std::vector<species::Species> wtSpecies_vec;
     // The "control expereriment / wild type library" contains only wildtype sequences
     species::species_map wtSpecies_vec;
-    auto currentObj = wtSpecies_vec.emplace(1, 1);
+    auto currentObj = wtSpecies_vec.emplace(std::make_pair<int, species::Species>(1, {1, cons}));
     currentObj.first->second.setCount(cons.M);
     currentObj.first->second.computeSpeciesKd();
 
@@ -192,11 +192,11 @@ int main(int argc, const char* argv[])
 
     std::cout << "Mutation Library" << std::endl;
     ;
-    auto counters = species::countMutationsWithErrors(S_bound, S_unbound, species_vec);
+    auto counters = species::countMutationsWithErrors(S_bound, S_unbound, species_vec, cons);
 
     std::cout << "Wild type Library" << std::endl;
     ;
-    auto counters_wt = species::countMutationsWithErrors(S_bound_wt, S_unbound_wt, wtSpecies_vec);
+    auto counters_wt = species::countMutationsWithErrors(S_bound_wt, S_unbound_wt, wtSpecies_vec, cons);
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
@@ -234,9 +234,9 @@ int main(int argc, const char* argv[])
     std::cout << "****** Write true values to files *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
     std::cout << "Write epistasis" << std::endl;
-    effects.writeEpistasisToFile(outputPath / "pairwise_epistasis.txt");
+    effects->writeEpistasisToFile(outputPath / "pairwise_epistasis.txt");
     std::cout << "Write KD" << std::endl;
-    effects.writeKdsToFile(outputPath / "single_kds.txt");
+    effects->writeKdsToFile(outputPath / "single_kds.txt");
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
@@ -257,7 +257,7 @@ int main(int argc, const char* argv[])
                     for (unsigned sym2 = 0; sym2 < cons.Q - 1; ++sym2)
                     {
                         Mutation mut2{pos2, sym2};
-                        auto doubleKd = effects.getKd(mut1) * effects.getKd(mut2) * effects.getEpistasis(mut1, mut2);
+                        auto doubleKd = effects->getKd(mut1) * effects->getKd(mut2) * effects->getEpistasis(mut1, mut2);
                         outfile << doubleKd << '\n';
                     }
                 }

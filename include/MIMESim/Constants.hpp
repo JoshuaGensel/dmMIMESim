@@ -27,19 +27,19 @@ namespace constants
 
         /***** Constants regarding output *******/
         // directory where the results and parameter file are stored
-        const fs::path OUTPUT_DIR;
+        const fs::path OUTPUT_DIR = "./results";
         // TODO lösche static const std::string OUTPUT_DIR;
         // parameter file name never changes
         static constexpr auto PARAMETER_FILE = "parameters.txt";
 
         /***** Constants regarding kds sampling *******/
         // absolute wildtype Kd
-        static constexpr double KD_WT = 1.0;
+        const double KD_WT = 1.0;
         // probability for each position to have an effect when mutated
         // static constexpr double P_EFFECT = 0.5;
         const double P_EFFECT = 0.5;
         // no multiplicative effect, when there is no epistasis
-        static constexpr double NO_EPISTASIS = 1.0;
+        const double NO_EPISTASIS = 1.0;
         // probability for each position pair to have epistatic effects
         // static constexpr double P_EPISTASIS = 0.75;
         const double P_EPISTASIS = 0.75;
@@ -49,15 +49,15 @@ namespace constants
         // static constexpr unsigned int MAX_MUT = 3;
         const unsigned int MAX_MUT;
         // number of total sequences
-        static constexpr unsigned int M = 12 * pow(10, 6);
+        const unsigned int M = 12 * pow(10, 6);
         // sequence length
-        const unsigned int L;
+        const unsigned int L = 50;
         // number of single values with al symbols
         const unsigned int SVal;
         // number of pairwise values with all combinations of symbols
         const unsigned int PWVal;
         // symbols per position
-        const unsigned int Q;
+        const unsigned int Q = 2;
         // probability for a mutation
         const double P_MUT = 0.01;
         // probability for sequencing error
@@ -76,35 +76,6 @@ namespace constants
         std::vector<double> setP_NMut(const unsigned int MaxMut, const unsigned L, const double pMut);
         unsigned int computeMaxMut(const unsigned int L, const double pMut);
 
-        static Constants& create_instance(const unsigned int length, const unsigned int q, const double p_mut,
-                                          const double p_error, const double p_effect, const double p_epistasis,
-                                          const fs::path outputDir);
-        // static Constants& create_instance(const unsigned int length, const unsigned int q, const double p_mut);
-
-        static Constants& get_instance();
-
-        // The copy constructor is deleted, to prevent client code from creating new
-        // instances of this class by copying the instance returned by create_instance()
-        Constants(Constants const&) = delete;
-
-        // The move constructor is deleted, to prevent client code from moving from
-        // the object returned by create_instance(), which could result in other clients
-        // retrieving a reference to an object with unspecified state.
-        Constants(Constants&&) = delete;
-
-      private:
-        // a flag for showing if the singleton has already been initiated
-        static bool inited;
-        static Constants& instance;
-
-        // Default-constructor is private, to prevent client code from creating new
-        // instances of this class. The only instance shall be retrieved through the
-        // create_instance() function.
-        // TODO: workaround, 3 mal die gleiche routine (computeMaxMut) aufrufen, weil es erst am  ende alles gespeichert
-        // wird, anders lösen? Lösung siehe Species: indexToMutPos, erst aufruf ohne parameter um dann den member
-        // parameter mitugeben.
-        // TODO: computeMaxMut mit p_mut/q-1, da ja p_mut die wkeit ist dass eine position überhaupt mutiert, aber nicht
-        // fpr jede einzelne muation
         Constants(unsigned int length, unsigned int q, double p_mut, double p_error, double p_effect,
                   double p_epistasis, fs::path outputDir)
             : L(length), SVal(length * (q - 1)), PWVal((length * (length - 1) / 2) * std::pow(q - 1, 2)), Q(q),
@@ -114,6 +85,13 @@ namespace constants
               P_NMUT(setP_NMut(computeMaxMut(length, p_mut / (q - 1)), length, p_mut)), OUTPUT_DIR(outputDir){};
         // Constants(unsigned int length, unsigned int q, double p_mut) : L(length),PWVal(L*(L-1)/2), Q(q),
         // P_MUT(p_mut), NMUT_RANGE(setNMutRange()), P_NMUT(setP_NMut()) {};
+
+      private:
+        // TODO: workaround, 3 mal die gleiche routine (computeMaxMut) aufrufen, weil es erst am  ende alles gespeichert
+        // wird, anders lösen?
+        // Lösung siehe Species: indexToMutPos, erst aufruf ohne parameter um dann den member parameter mitugeben.
+        // TODO: computeMaxMut mit p_mut/q-1, da ja p_mut die wkeit ist dass eine position überhaupt mutiert, aber nicht
+        // fpr jede einzelne muation
     };
 
     /**
@@ -121,18 +99,18 @@ namespace constants
      * parameters
      * TODO: entweder result ordner angeben als Muss, wo ggf die parameter liste drin ist
      */
-    const Constants &readParameters(const fs::path &outputPath);
+    const Constants& readParameters(const fs::path& outputPath);
 
     /**
      * TODO noch abfragen, dass nur bei "" in den cout geschrieben werden soll?
      * Write parameters into a parameter file in the given output path.
      * If the path does not exist, the parameters are printed into cout
      */
-    void writeParameters(const fs::path &outputPath, const Constants &params);
+    void writeParameters(const fs::path& outputPath, const Constants& params);
 
     /**
      * Write parameters into cout
      */
-    void writeParameters(const Constants &params);
+    void writeParameters(const Constants& params);
 }
 #endif /* Constants_hpp */
