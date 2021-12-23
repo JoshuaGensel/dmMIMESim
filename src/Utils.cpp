@@ -39,8 +39,8 @@ namespace utils
 
     std::vector<unsigned int> getBinaryRange(unsigned int maxRange, unsigned int L)
     {
-        // compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id range for
-        // each number of mutations
+        // compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id range
+        // for each number of mutations
         std::vector<unsigned int> nMutRange(maxRange + 1);
         nMutRange[0] = 1;
         for (unsigned int i = 1; i <= maxRange; ++i)
@@ -52,8 +52,8 @@ namespace utils
 
     std::vector<unsigned int> getMultinomialRange(unsigned int maxRange, unsigned int L, unsigned int q)
     {
-        // compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id range for
-        // each number of mutations
+        // compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id range
+        // for each number of mutations
         std::vector<unsigned int> nMutRange(maxRange + 1);
         nMutRange[0] = 1;
         for (unsigned int i = 1; i <= maxRange; ++i)
@@ -91,18 +91,18 @@ namespace utils
                 unsigned int m = 0;
                 do
                 {
-                    // for each possible positions within the length the actual mutation covers a range of ids depending
-                    // on the residual mutations to follow
+                    // for each possible positions within the length the actual mutation covers a range of ids
+                    // depending on the residual mutations to follow
 
                     // cumSumRange <- cumsum(choose(Lact-seq(Lact-(numMutAct-1)), numMutAct-1))
                     std::vector<long> cumSumRange(Lact - (numMutAct - 1));
                     auto n = Lact - 1;
                     for (unsigned int i = 0; i < cumSumRange.size(); ++i)
                     {
-                        // the id range for each position when it is mutated (if pos 1 is mutated L-1 positions remain
-                        // to
-                        //  contain the mut-1 remaining mutations, each time there are q^nmut possibilies (it does not
-                        //  change in every step)
+                        // the id range for each position when it is mutated (if pos 1 is mutated L-1 positions
+                        // remain to
+                        //  contain the mut-1 remaining mutations, each time there are q^nmut possibilies (it does
+                        //  not change in every step)
                         cumSumRange[i] = utils::nChoosek(n, numMutAct - 1) * std::pow(numSymbols, numMut);
                         --n;
                         // std::cout << "cumSumRange von " << i << " " << cumSumRange[i] << std::endl;
@@ -110,14 +110,15 @@ namespace utils
 
                     std::partial_sum(cumSumRange.begin(), cumSumRange.end(), cumSumRange.begin());
 
-                    // find the id within the ranges and get the index (=position seen from the last mutated position)
+                    // find the id within the ranges and get the index (=position seen from the last mutated
+                    // position)
                     int pos = std::lower_bound(cumSumRange.begin(), cumSumRange.end(), idAct) - cumSumRange.begin() + 1;
-                    // if one mutation, the symbol can be simply find by modulo q, with 2 mutations it has to be divided
-                    // by q first (since one symbol of the first mutation can be present with q symbols of the second
-                    // one, with 3 mutation divided by q^2 etc
+                    // if one mutation, the symbol can be simply find by modulo q, with 2 mutations it has to be
+                    // divided by q first (since one symbol of the first mutation can be present with q symbols of
+                    // the second one, with 3 mutation divided by q^2 etc
                     int mut = (int((idAct - 1) / std::pow(numSymbols, numMutAct - 1)) % numSymbols) + 1;
-                    // put the position - symbol pair into the map. add the last cummulative position (=position seen
-                    // from the beginning of the sequence)
+                    // put the position - symbol pair into the map. add the last cummulative position (=position
+                    // seen from the beginning of the sequence)
                     unsigned int prePos = 0;
                     if (mutPos.begin() != mutPos.end())
                         prePos = mutPos.rbegin()->first;
@@ -127,9 +128,9 @@ namespace utils
                     Lact = Lact - pos;
                     // the redsiudal number of mutations after the actual mutation
                     --numMutAct;
-                    // the id within the residual length (-1 because the inidices start at 0, and another -1 because we
-                    // substract the ids of the preceding mutation range changees for q symbols: the substracted ids
-                    // have to be multiplied by q (since each position can have 3 values)
+                    // the id within the residual length (-1 because the inidices start at 0, and another -1 because
+                    // we substract the ids of the preceding mutation range changees for q symbols: the substracted
+                    // ids have to be multiplied by q (since each position can have 3 values)
                     idAct = idAct - (pos == 1 ? 0 : cumSumRange[pos - 2]);
                     ++m;
                 } while (m < numMut);
@@ -163,5 +164,4 @@ namespace utils
             elems.push_back(item);
         }
     }
-
 }
