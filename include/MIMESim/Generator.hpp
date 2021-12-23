@@ -16,5 +16,6 @@ class Generator
   public:
     static void create_instance(const unsigned int seed);
     static Generator* get_instance();
+    static void release_instance();
     std::default_random_engine engine;
 };

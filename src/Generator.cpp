@@ -27,3 +27,14 @@ Generator* Generator::get_instance()
     }
     return instance;
 }
+
+void Generator::release_instance()
+{
+    if (instance == NULL)
+    {
+        std::cerr << "Deletion of not correctly instantiated Generator (release after release)." << std::endl;
+        throw std::runtime_error("Deletion of not correctly instantiated Generator (release after release).");
+    }
+    delete instance;
+    instance = NULL;
+}
