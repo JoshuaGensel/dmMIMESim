@@ -539,14 +539,13 @@ namespace species
             specId = params.NMUT_RANGE[numMut - 1];
             mutVector mutPos_new = mutPos;
             // get the indices for the individual length segments for each position
-            std::partial_sum(mutPos.begin(), mutPos.end(), mutPos_new.begin(),
-                             [](const Mutation& x, const Mutation& y) {
-                                 return Mutation(y.getPosition() - x.getPosition(), y.getSymbol());
-                             });
-            // TODO weg get the indices for the individual length segments for each position
-            //             for(unsigned i = 1; i<mutPos_new.size(); ++i) {
-            //                 mutPos_new[i].getPosition() -= mutPos[i-1].getPosition();
-            //             }
+            if (numMut > 1)
+            {
+                std::adjacent_difference(mutPos.begin(), mutPos.end(), mutPos_new.begin(),
+                                         [](const Mutation& x, const Mutation& y) {
+                                             return Mutation(x.getPosition() - y.getPosition(), x.getSymbol());
+                                         });
+            }
             unsigned Lact = params.L;
             unsigned numMutAct = numMut;
 
