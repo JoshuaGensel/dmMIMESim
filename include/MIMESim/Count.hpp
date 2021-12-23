@@ -20,10 +20,10 @@ namespace count
 
         ~counter_1() = default;
 
-        counter_1(const unsigned int L, const unsigned int q) : data(L, std::vector<count_type>(q)) {}
+        counter_1(const unsigned int L, const unsigned int q) : data{L, std::vector<count_type>(q)} {}
 
         counter_1(const unsigned int L, const unsigned int q, const int initialValue)
-            : data(L, std::vector<count_type>(q, initialValue))
+            : data{L, std::vector<count_type>(q, initialValue)}
         {
         }
 
@@ -56,13 +56,13 @@ namespace count
         ~counter_2() = default;
 
         counter_2(const unsigned int length, const unsigned int symbols)
-            : L(length), q(symbols), data(length * (length - 1) / 2, std::vector<count_type>(symbols * symbols))
+            : L{length}, q{symbols}, data{length * (length - 1) / 2, std::vector<count_type>(symbols * symbols)}
         {
         }
 
         counter_2(const unsigned int length, const unsigned int symbols, const int initialValue)
-            : L(length), q(symbols),
-              data(length * (length - 1) / 2, std::vector<count_type>(symbols * symbols, initialValue))
+            : L{length}, q{symbols}, data{length * (length - 1) / 2,
+                                          std::vector<count_type>(symbols * symbols, initialValue)}
         {
         }
 
@@ -108,7 +108,7 @@ namespace count
         ~counter_collection() = default;
 
         counter_collection(const unsigned int L, const unsigned int q)
-            : counter_bound_1d(L, q), counter_unbound_1d(L, q), counter_bound_2d(L, q), counter_unbound_2d(L, q)
+            : counter_bound_1d{L, q}, counter_unbound_1d{L, q}, counter_bound_2d{L, q}, counter_unbound_2d{L, q}
         {
         }
 

@@ -7,7 +7,7 @@ class Generator
   private:
     static Generator* instance;
 
-    Generator(const unsigned int seed) : engine(std::default_random_engine(seed)){};
+    Generator(const unsigned int seed) : engine{std::default_random_engine(seed)} {};
 
     Generator(const Generator&) = delete;
     Generator(Generator&&) = delete;

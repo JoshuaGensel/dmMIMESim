@@ -25,8 +25,8 @@
 namespace species
 {
     Species::Species(const unsigned long long id, const constants::Constants& param)
-        : specId(id), params(param), numMut(getNumberOfMutationsById()), mutatedPositions(specIdxToMutPos()), count(0),
-          mutCountBound(0), mutCountUnbound(0), errorCountBound(0.0), errorCountUnbound(0.0)
+        : specId{id}, params{param}, numMut{getNumberOfMutationsById()}, mutatedPositions{specIdxToMutPos()}, count{0},
+          mutCountBound{0}, mutCountUnbound{0}, errorCountBound{0}, errorCountUnbound{0}
     {
     }
 

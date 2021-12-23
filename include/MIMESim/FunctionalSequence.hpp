@@ -70,10 +70,10 @@ class FunctionalSequence
     // instances of this class. The only instance shall be retrieved through the
     // create_instance(...) function.
     FunctionalSequence(const constants::Constants& params)
-        : params(params), kds(drawKdValues()), epistasis(drawEpistasis()){};
+        : params{params}, kds{drawKdValues()}, epistasis{drawEpistasis()} {};
     FunctionalSequence(const std::string& inputPath)
-        : params(constants::readParameters(inputPath)), kds(readKdValues(inputPath)),
-          epistasis(readEpistasis(inputPath)){};
+        : params{constants::readParameters(inputPath)}, kds{readKdValues(inputPath)}, epistasis{
+                                                                                          readEpistasis(inputPath)} {};
 
     FunctionalSequence(const FunctionalSequence&) = delete;
     FunctionalSequence(FunctionalSequence&&) = delete;
