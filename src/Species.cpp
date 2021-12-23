@@ -286,7 +286,7 @@ namespace species
             // draw number of mutations
             const int numMut = d(generator);
             // if no mutations, the id is always 1
-            int id = 1;
+            unsigned long long id = 1;
             if (numMut > 0)
             {
                 id = unif[numMut - 1](generator);

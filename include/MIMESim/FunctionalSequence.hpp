@@ -57,7 +57,7 @@ class FunctionalSequence
      * @param b Mutation 2
      * @return the Index of the Vector of the the pairwise values in the matrix (upper or lower triangle)
      */
-    unsigned int getMatrixVectorIndex(const Mutation& a, const Mutation& b) const;
+    unsigned long long getMatrixVectorIndex(const Mutation& a, const Mutation& b) const;
 
     /**
      * computes index within vector of position and symbol

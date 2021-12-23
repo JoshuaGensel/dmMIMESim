@@ -140,7 +140,7 @@ unsigned int FunctionalSequence::getVectorIndex(const Mutation& m) const
 }
 
 // TODO test
-unsigned int FunctionalSequence::getMatrixVectorIndex(const Mutation& a, const Mutation& b) const
+unsigned long long FunctionalSequence::getMatrixVectorIndex(const Mutation& a, const Mutation& b) const
 {
     // TODO weg damit nach test?
     // i must always be smaller than j
@@ -157,7 +157,7 @@ unsigned int FunctionalSequence::getMatrixVectorIndex(const Mutation& a, const M
     // unsigned int res = (c.L*(c.L-1)/2) - ((c.L-i+1)*((c.L-i+1)-1)/2) + j - i - 1;
     // TODO oha... determine the id of the sequence with pairwise mutations and substract the ID range for the
     // sequences with no or 1 mutation
-    unsigned int res;
+    unsigned long long res;
     if (a.getPosition() < b.getPosition())
         // TODO diese Funktionen woanders hin als in Species? Eigentlich hat Species ja nichts mit Functional
         // Sequence zu tun

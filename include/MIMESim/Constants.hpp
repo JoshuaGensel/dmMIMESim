@@ -64,7 +64,7 @@ namespace constants
         const double P_ERR = 0.001;
         // id range for 0..MAX_MUT mutations for a sequence length L: (0 -> 1, 1 -> 2..L+1, etc)
         // const std::array<unsigned int, MAX_MUT+1> NMUT_RANGE;
-        const std::vector<unsigned int> NMUT_RANGE;
+        const std::vector<unsigned long long> NMUT_RANGE;
         // const std::array<double, MAX_MUT+1> P_NMUT;
         const std::vector<double> P_NMUT;
 
@@ -73,7 +73,7 @@ namespace constants
 
         // std::array<unsigned int, MAX_MUT+1> setNMutRange();
         // std::array<double, MAX_MUT+1> setP_NMut();
-        std::vector<unsigned int> setNMutRange(const unsigned int maxMut, const unsigned L);
+        std::vector<unsigned long long> setNMutRange(const unsigned int maxMut, const unsigned L);
         // TODO: austauschen
         std::vector<unsigned int> setNMutRange(const unsigned int maxMut, const unsigned int L, const unsigned int q);
         std::vector<double> setP_NMut(const unsigned int MaxMut, const unsigned L, const double pMut);
