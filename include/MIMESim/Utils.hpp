@@ -20,7 +20,7 @@ namespace utils
     typedef std::map<unsigned int, unsigned int> mutatedPositions;
 
     // TODO: refactoring -> besesr zu DCA und in DCABenchmark benutzen
-    unsigned long nChoosek(const unsigned n, const unsigned k);
+    long double nChoosek(const unsigned n, const unsigned k);
     std::vector<unsigned int> getBinaryRange(unsigned int maxRange, unsigned int L);
     std::vector<unsigned int> getMultinomialRange(unsigned int maxRange, unsigned int L, unsigned int q);
     // TODO QUESTION ist in Species vorhanden.... umschiften, ebenso wie mutPosToIndex?

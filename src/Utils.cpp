@@ -8,6 +8,7 @@
 
 #include "Utils.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <math.h>
@@ -18,21 +19,21 @@
 namespace utils
 {
 
-    unsigned long nChoosek(unsigned n, unsigned k)
+    long double nChoosek(unsigned n, unsigned k)
     {
+        long double result;
         if (k > n)
             return 0;
-        if (k * 2 > n)
-            k = n - k;
         if (k == 0)
             return 1;
+        if (k < n - k)
+            result = k * std::beta(static_cast<long double>(k), static_cast<long double>(n - k + 1));
+        else
+            result = (n - k) * std::beta(static_cast<long double>(k + 1), static_cast<long double>(n - k));
+        if (result == 0)
+            throw std::overflow_error("Overflow error in nChoosek");
+        result = 1 / result;
 
-        unsigned long result = n;
-        for (int i = 2; i <= k; ++i)
-        {
-            result *= (n - i + 1);
-            result /= i;
-        }
         return result;
     }
 

@@ -477,14 +477,15 @@ namespace species
                 unsigned int i = 0;
                 // initialise first value of the vector for cummulative sum (do it so complicated to not compute the
                 // whole range if not necessary)
-                cumSumRange[0] = utils::nChoosek(Lact - 1, numMutAct - 1) * std::pow(mSymbols, numMut);
+                cumSumRange[0] = std::roundl(utils::nChoosek(Lact - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
                 // find the id within the ranges and get the index (=position)
                 while (idAct > cumSumRange[i] && i < Lact - (numMutAct - 1))
                 {
                     ++i;
                     // for(; i<Lact-(numMutAct-1) && !indexFound; ++i) {
                     // TODO test
-                    cumSumRange[i] = utils::nChoosek(Lact - i - 1, numMutAct - 1) * std::pow(mSymbols, numMut);
+                    cumSumRange[i] =
+                        std::roundl(utils::nChoosek(Lact - i - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
                     if (i > 0)
                     {
                         cumSumRange[i] += cumSumRange[i - 1];
@@ -564,7 +565,8 @@ namespace species
                         for (int i = 1; i < mutation.getPosition(); ++i)
                         {
                             // specId += utils::nChoosek(Lact-i, numMutAct-1);
-                            specId += utils::nChoosek(Lact - i, numMutAct - 1) * pow(params.Q - 1, numMutAct);
+                            specId +=
+                                std::roundl(utils::nChoosek(Lact - i, numMutAct - 1) * pow(params.Q - 1, numMutAct));
                         }
                     }
                     Lact -= mutation.getPosition();
