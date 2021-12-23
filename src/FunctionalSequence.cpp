@@ -18,9 +18,8 @@ FunctionalSequence* FunctionalSequence::get_instance()
 {
     if (instance == NULL)
     {
-        std::cerr << "Singleton not correctly instantiated." << std::endl;
-        // TODO anderen exception type
-        throw std::invalid_argument("Singleton not correctly instantiated.");
+        std::cerr << "FunctionalSequence not correctly instantiated (get before create or after release)." << std::endl;
+        throw std::runtime_error("FunctionalSequence not correctly instantiated (get before create or after release).");
     }
     return instance;
 }
@@ -30,9 +29,8 @@ FunctionalSequence* FunctionalSequence::create_instance(const constants::Constan
 {
     if (instance != NULL)
     {
-        std::cerr << "Singleton was already instantiated." << std::endl;
-        // TODO anderen exception type
-        throw std::invalid_argument("Singleton was already instantiated.");
+        std::cerr << "FunctionalSequence was already instantiated (create after create)." << std::endl;
+        throw std::runtime_error("FunctionalSequence was already instantiated (create after create).");
     }
     instance = new FunctionalSequence(params);
     return instance;
@@ -42,9 +40,8 @@ FunctionalSequence* FunctionalSequence::create_instance(const std::string& input
 {
     if (instance != NULL)
     {
-        std::cerr << "Singleton was already instantiated." << std::endl;
-        // TODO anderen exception type
-        throw std::invalid_argument("Singleton was already instantiated.");
+        std::cerr << "FunctionalSequence was already instantiated (create after create)." << std::endl;
+        throw std::runtime_error("FunctionalSequence was already instantiated (create after create).");
     }
     instance = new FunctionalSequence(inputPath);
     return instance;
@@ -54,9 +51,8 @@ void FunctionalSequence::release_instance()
 {
     if (instance == NULL)
     {
-        std::cerr << "Deletion of not correctly instantiated Singleton." << std::endl;
-        // TODO anderen exception type
-        throw std::invalid_argument("Deletion of not correctly instantiated Singleton.");
+        std::cerr << "Deletion of not correctly instantiated FunctionalSequence (release after release)." << std::endl;
+        throw std::runtime_error("Deletion of not correctly instantiated FunctionalSequence (release after release).");
     }
     delete instance;
     instance = NULL;
