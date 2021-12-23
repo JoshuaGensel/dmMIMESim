@@ -582,6 +582,16 @@ namespace species
     {
         // gives the index where the content is still lower than the given id
         auto low_it = std::lower_bound(std::begin(params.NMUT_RANGE), std::end(params.NMUT_RANGE), specId);
+
+        // will incorrectly return numMut = 2*MAX_MUT+1 for all specId's > params.NMUT_RANGE[-1]
+        if (low_it == std::end(params.NMUT_RANGE))
+        {
+            std::cerr << "specId " << specId << "is out of range ";
+            for (auto i : params.NMUT_RANGE)
+                std::cerr << i << ' ';
+            std::cerr << std::endl;
+            throw std::out_of_range("specId is out of range.");
+        }
         return (low_it - std::begin(params.NMUT_RANGE));
     }
 
