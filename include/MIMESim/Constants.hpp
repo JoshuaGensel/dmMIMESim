@@ -77,15 +77,15 @@ namespace constants
         // TODO: austauschen
         std::vector<unsigned int> setNMutRange(const unsigned int maxMut, const unsigned int L, const unsigned int q);
         std::vector<double> setP_NMut(const unsigned int MaxMut, const unsigned L, const double pMut);
-        unsigned int computeMaxMut(const unsigned int L, const double pMut);
+        unsigned int computeMaxMut(unsigned int m, unsigned int l, double p_mut);
 
         Constants(unsigned int length, unsigned int q, unsigned int m, double p_mut, double p_error, double p_effect,
                   double p_epistasis, unsigned int seed, fs::path outputDir)
             : L(length), M(m), SVal(length * (q - 1)), PWVal((length * (length - 1) / 2) * std::pow(q - 1, 2)), Q(q),
               P_MUT(p_mut), P_ERR(p_error), P_EFFECT(p_effect), P_EPISTASIS(p_epistasis),
-              MAX_MUT(computeMaxMut(length, p_mut / (q - 1))),
-              NMUT_RANGE(setNMutRange(computeMaxMut(length, p_mut / (q - 1)), L, q)),
-              P_NMUT(setP_NMut(computeMaxMut(length, p_mut / (q - 1)), length, p_mut)), SEED(seed),
+              MAX_MUT(computeMaxMut(m, length, p_mut / (q - 1))),
+              NMUT_RANGE(setNMutRange(computeMaxMut(m, length, p_mut / (q - 1)), L, q)),
+              P_NMUT(setP_NMut(computeMaxMut(m, length, p_mut / (q - 1)), length, p_mut)), SEED(seed),
               OUTPUT_DIR(outputDir){};
 
         // Constructor for combining species sets; most params are the same as in params2, except MAX_MUT related params
