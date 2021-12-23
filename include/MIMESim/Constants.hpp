@@ -83,10 +83,8 @@ namespace constants
                   double p_epistasis, unsigned int seed, fs::path outputDir)
             : L(length), M(m), SVal(length * (q - 1)), PWVal((length * (length - 1) / 2) * std::pow(q - 1, 2)), Q(q),
               P_MUT(p_mut), P_ERR(p_error), P_EFFECT(p_effect), P_EPISTASIS(p_epistasis),
-              MAX_MUT(computeMaxMut(m, length, p_mut / (q - 1))),
-              NMUT_RANGE(setNMutRange(computeMaxMut(m, length, p_mut / (q - 1)), L, q)),
-              P_NMUT(setP_NMut(computeMaxMut(m, length, p_mut / (q - 1)), length, p_mut)), SEED(seed),
-              OUTPUT_DIR(outputDir){};
+              MAX_MUT(computeMaxMut(m, length, p_mut)), NMUT_RANGE(setNMutRange(computeMaxMut(m, length, p_mut), L, q)),
+              P_NMUT(setP_NMut(computeMaxMut(m, length, p_mut), length, p_mut)), SEED(seed), OUTPUT_DIR(outputDir){};
 
         // Constructor for combining species sets; most params are the same as in params2, except MAX_MUT related params
         Constants(Constants const& params1, Constants const& params2)
