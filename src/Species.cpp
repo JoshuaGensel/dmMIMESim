@@ -274,10 +274,11 @@ namespace species
         // then draw uniformly the id from the id range for this particular number of mutations
         std::vector<std::uniform_int_distribution<>> unif(params.MAX_MUT + 1);
 
+        unif[0] = std::uniform_int_distribution<>(1, 1);
         // create distributions for all numbers of mutations beforehand
-        for (int numMut = 1; numMut <= params.MAX_MUT + 1; ++numMut)
+        for (int numMut = 1; numMut <= params.MAX_MUT; ++numMut)
         {
-            unif[numMut - 1] =
+            unif[numMut] =
                 std::uniform_int_distribution<>(params.NMUT_RANGE[numMut - 1] + 1, params.NMUT_RANGE[numMut]);
         }
         // count the given species
@@ -289,7 +290,7 @@ namespace species
             unsigned long long id = 1;
             if (numMut > 0)
             {
-                id = unif[numMut - 1](generator);
+                id = unif[numMut](generator);
             }
             // create new object if not yet present (return value gives iterator and flag if insertion happened)
             // the id is the key for the map, and also the parameter for the constructor for the species class
