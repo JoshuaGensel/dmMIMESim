@@ -272,14 +272,14 @@ namespace species
         // first draw a the number of mutations from 0 to MAX_MUT, with the given probabilities...
         std::discrete_distribution<> d(begin(params.P_NMUT), end(params.P_NMUT));
         // then draw uniformly the id from the id range for this particular number of mutations
-        std::vector<std::uniform_int_distribution<>> unif(params.MAX_MUT + 1);
+        std::vector<std::uniform_int_distribution<unsigned long long>> unif(params.MAX_MUT + 1);
 
-        unif[0] = std::uniform_int_distribution<>(1, 1);
+        unif[0] = std::uniform_int_distribution<unsigned long long>(1, 1);
         // create distributions for all numbers of mutations beforehand
         for (int numMut = 1; numMut <= params.MAX_MUT; ++numMut)
         {
-            unif[numMut] =
-                std::uniform_int_distribution<>(params.NMUT_RANGE[numMut - 1] + 1, params.NMUT_RANGE[numMut]);
+            unif[numMut] = std::uniform_int_distribution<unsigned long long>(params.NMUT_RANGE[numMut - 1] + 1,
+                                                                             params.NMUT_RANGE[numMut]);
         }
         // count the given species
         for (int n = 0; n < params.M; ++n)
@@ -294,9 +294,11 @@ namespace species
             }
             // create new object if not yet present (return value gives iterator and flag if insertion happened)
             // the id is the key for the map, and also the parameter for the constructor for the species class
-            auto currentEntry = species_map.try_emplace(id, id, params);
+            auto currentEntry = species_map.emplace(id, species::Species(id, params));
             if (currentEntry.second)
+            {
                 currentEntry.first->second.computeSpeciesKd();
+            }
             currentEntry.first->second.incrementCount();
             //            if(species_map.find(id) == species_map.end()) {
             //                //the id is the key for the map, and also the parameter for the constructor for the
@@ -605,9 +607,9 @@ namespace species
                 mutVector mutatedPositions = it->second.getMutatedPositions();
 
                 // loop over #occurences in bound pool
-                for (int i = 0; i != S_bound[specIdx]; ++i)
+                for (int i = 0; i < S_bound[specIdx]; ++i)
                 {
-                    std::set<Mutation> uniquePositions = errors[errIdx];
+                    auto uniquePositions = errors[errIdx];
                     countErrors_oneSeq(uniquePositions, mutatedPositions, counter.counter_bound_1d,
                                        counter.counter_bound_2d);
                     ++errIdx;

@@ -274,7 +274,7 @@ int main(int argc, const char* argv[])
         start = std::chrono::high_resolution_clock::now();
         // The "control expereriment / wild type library" contains only wildtype sequences
         species::species_map wtSpecies_vec;
-        auto currentObj = wtSpecies_vec.emplace(std::make_pair<int, species::Species>(1, {1, cons}));
+        auto currentObj = wtSpecies_vec.emplace(std::make_pair<unsigned long long, species::Species>(1, {1, cons}));
         currentObj.first->second.setCount(cons.M);
         currentObj.first->second.computeSpeciesKd();
         end = std::chrono::high_resolution_clock::now();
