@@ -599,7 +599,7 @@ namespace species
         int specIdx = 0;
         for (auto it = species_vec.begin(); it != species_vec.end(); ++it)
         {
-            // species occures in bound pool
+            // species occurs in bound pool
             if (S_bound[specIdx] > 0)
             {
                 mutVector mutatedPositions = it->second.getMutatedPositions();
@@ -621,7 +621,7 @@ namespace species
         specIdx = 0;
         for (auto it = species_vec.begin(); it != species_vec.end(); ++it)
         {
-            // species occures in undbound pool
+            // species occurs in undbound pool
             if (S_unbound[specIdx] > 0)
             {
                 mutVector mutatedPositions = it->second.getMutatedPositions();
