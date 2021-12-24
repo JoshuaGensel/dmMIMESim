@@ -89,7 +89,7 @@ std::tuple<species::species_map, species::species_map, constants::Constants> sec
 }
 
 std::tuple<count::counter_collection, std::valarray<unsigned int>, std::valarray<unsigned int>>
-runSelection(species::species_map species_vec, const constants::Constants& params)
+runSelection(species::species_map& species_vec, const constants::Constants& params)
 {
     std::cout << "****** Solve ODE to infer bound and unbound fraction *******" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
