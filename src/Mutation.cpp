@@ -20,3 +20,8 @@ bool Mutation::operator<(const Mutation& mut) const
 {
     return this->getPosition() < mut.getPosition();
 }
+
+bool Mutation::operator==(const Mutation& mut) const
+{
+    return this->getPosition() == mut.getPosition();
+}

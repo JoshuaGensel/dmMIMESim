@@ -24,6 +24,8 @@ class Mutation
     // to be able to build a set of Mutations (where the position is unique), the following operators have to be
     // overloaded.
     bool operator<(const Mutation& mut) const;
+
+    bool operator==(const Mutation& mut) const;
 };
 
 #endif // DCABENCHMARK_MUTATION_H
