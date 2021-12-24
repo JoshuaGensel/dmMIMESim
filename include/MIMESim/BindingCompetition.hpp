@@ -54,8 +54,8 @@ class UnboundProtein : public cppoptlib::BoundedProblem<double>
     // TODO: Umbau nach counts
     // TODO: counts und kds in einer rutsche füllen
     UnboundProtein(const species::species_map& spec)
-        : Superclass(1), kds(getSpeciesKds(spec)), frequencies(getSpeciesFrequencies(spec)),
-          counts(getSpeciesCounts(spec)){};
+        : Superclass{1}, kds{getSpeciesKds(spec)}, frequencies{getSpeciesFrequencies(spec)}, counts{getSpeciesCounts(
+                                                                                                 spec)} {};
 
     // the objective to be minimised
     // TODO: Umbau nach counts
