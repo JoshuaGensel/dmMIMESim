@@ -66,17 +66,14 @@ namespace constants
         // const std::array<unsigned int, MAX_MUT+1> NMUT_RANGE;
         const std::vector<unsigned long long> NMUT_RANGE;
         // const std::array<double, MAX_MUT+1> P_NMUT;
-        const std::vector<double> P_NMUT;
+        const std::vector<long double> P_NMUT;
 
         // seed for random number generator
         const unsigned int SEED;
 
-        // std::array<unsigned int, MAX_MUT+1> setNMutRange();
-        // std::array<double, MAX_MUT+1> setP_NMut();
-        std::vector<unsigned long long> setNMutRange(const unsigned int maxMut, const unsigned L);
-        // TODO: austauschen
-        std::vector<unsigned int> setNMutRange(const unsigned int maxMut, const unsigned int L, const unsigned int q);
-        std::vector<double> setP_NMut(const unsigned int MaxMut, const unsigned L, const double pMut);
+        std::vector<unsigned long long> setNMutRange(const unsigned int maxMut, const unsigned int L,
+                                                     const unsigned int q);
+        const std::vector<long double> setP_NMut(unsigned int max_mut, unsigned int l, double p_mut);
         unsigned int computeMaxMut(unsigned int m, unsigned int l, double p_mut);
 
         Constants(unsigned int length, unsigned int q, unsigned int m, double p_mut, double p_error, double p_effect,

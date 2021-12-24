@@ -67,22 +67,18 @@ namespace constants
     /*
      * computing the probability for each number of mutations
      */
-    // std::array<double, Constants::MAX_MUT+1> Constants::setP_NMut() {
-    std::vector<double> Constants::setP_NMut(const unsigned int maxMut, const unsigned int L, const double pMut)
+    const std::vector<long double> Constants::setP_NMut(unsigned int max_mut, unsigned int l, double p_mut)
     {
-        // std::array<double, Constants::MAX_MUT+1> p_nmut;
-        std::vector<double> p_nmut(maxMut + 1);
-        double p_sum = 0;
-        // TODO test: die wahrscheinlichekiten für n > n_max werden zu n_max hinzugezählt
-        // for(unsigned i = 0; i<= maxMut; ++i) {
-        for (unsigned i = 0; i < maxMut; ++i)
+        std::vector<long double> p_nmut(max_mut + 1);
+        long double p_sum = 0;
+        for (unsigned i = 0; i < max_mut; ++i)
         {
-            p_nmut[i] = utils::nChoosek(L, i) * pow(pMut, i) * pow(1 - pMut, L - i);
+            p_nmut[i] = utils::nChoosek(l, i) * pow(p_mut, i) * pow(1 - p_mut, l - i);
             p_sum += p_nmut[i];
         }
         // the probabilities for n > n_max are added to n_max
-        p_nmut[maxMut] = 1 - p_sum;
-        return (p_nmut);
+        p_nmut[max_mut] = 1 - p_sum;
+        return p_nmut;
     };
 
     const Constants& readParameters(const fs::path& outputPath)
