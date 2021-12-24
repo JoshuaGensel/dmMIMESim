@@ -44,7 +44,11 @@ namespace constants
         for (unsigned int i = 1; i <= maxMut * 2; ++i)
         {
             // cummulative sum of L choose i position combinations and (q-1)^i symbol combinations
-            nMutRange[i] = nMutRange[i - 1] + lround(utils::nChoosek(L, i) * pow(q - 1, i));
+
+            if (nMutRange[i] < nMutRange[i - 1])
+            {
+                throw std::overflow_error("Overflow error in setNMutRange.");
+            }
         }
         return (nMutRange);
     }
