@@ -91,16 +91,6 @@ namespace constants
               PWVal{params2.PWVal}, P_MUT{params2.P_MUT}, P_ERR{params2.P_ERR}, P_EFFECT{params2.P_EFFECT},
               P_EPISTASIS{params2.P_EPISTASIS}, P_NMUT{params2.P_NMUT}, SEED{params2.SEED}, OUTPUT_DIR{
                                                                                                 params2.OUTPUT_DIR} {};
-
-        // Constants(unsigned int length, unsigned int q, double p_mut) : L(length),PWVal(L*(L-1)/2), Q(q),
-        // P_MUT(p_mut), NMUT_RANGE(setNMutRange()), P_NMUT(setP_NMut()) {};
-
-      private:
-        // TODO: workaround, 3 mal die gleiche routine (computeMaxMut) aufrufen, weil es erst am  ende alles gespeichert
-        // wird, anders lösen?
-        // Lösung siehe Species: indexToMutPos, erst aufruf ohne parameter um dann den member parameter mitugeben.
-        // TODO: computeMaxMut mit p_mut/q-1, da ja p_mut die wkeit ist dass eine position überhaupt mutiert, aber nicht
-        // fpr jede einzelne muation
     };
 
     /**
