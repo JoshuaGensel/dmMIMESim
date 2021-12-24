@@ -7,7 +7,10 @@ callUTCodeCoverageAnalysis.sh
 !\.gitignore
 !\.clang-format
 *build*
-*test*
+*Debug*
+*test/*
+!*test/*.cpp
+!*test/CMakeLists.txt
 *result*
 
 # Prerequisites
