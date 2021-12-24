@@ -34,21 +34,6 @@ namespace constants
         return maxMut;
     }
 
-    // TODO löschen
-    //    //std::array<unsigned int, Constants::MAX_MUT+1> Constants::setNMutRange() {
-    //    std::vector<unsigned int> Constants::setNMutRange(const unsigned int maxMut, const unsigned int L) {
-    //        //compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id range
-    //        for each number of mutations
-    //        //TODO mal ausporbieren wenn ich mehr error erlaube, also einfach nur die größere range für spätere eror
-    //        id berechnung std::vector<unsigned int> nMutRange(maxMut*2+1);
-    //        //std::array<unsigned int, MAX_MUT+1> nMutRange;
-    //        nMutRange[0] = 1;
-    //        for(unsigned int i = 1; i<=maxMut*2; ++i) {
-    //            nMutRange[i] = nMutRange[i - 1] + utils::nChoosek(L, i);
-    //        }
-    //        return(nMutRange);
-    //    }
-
     std::vector<unsigned long long> Constants::setNMutRange(const unsigned int maxMut, const unsigned int L,
                                                             const unsigned int q)
     {
@@ -103,8 +88,6 @@ namespace constants
             }
 
             // dafault parameters, in case no file is given, or paramater are not set in the file
-            // TODO If L is big, the id range gets really high -> long statt int. if any error, look for to high ints
-            // sequence length
             unsigned int L = 50;
             // symbols per position
             unsigned int q = 2;

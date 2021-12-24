@@ -104,8 +104,8 @@ namespace constants
     };
 
     /**
-     * Read in parameters from a given parameter file in the given result directory. If there is no file, use default
-     * parameters
+     * Read in parameters from a given parameter file in the given result directory. If there is no file, use
+     * default parameters
      * TODO: entweder result ordner angeben als Muss, wo ggf die parameter liste drin ist
      */
     const Constants& readParameters(const fs::path& outputPath);

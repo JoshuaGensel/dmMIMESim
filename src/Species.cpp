@@ -520,10 +520,6 @@ namespace species
                 idAct = idAct - (pos == 1 ? 0 : cumSumRange[i - 1]); // hier stimmt was nicht
             }
         }
-        //.... and get the correct positions within the sequence with cumsum
-        // TODO in die schleife rein, wie in Utils..
-        // std::partial_sum(mutPos.begin(), mutPos.end(), mutPos.begin());
-
         return (mutPos);
     }
 
