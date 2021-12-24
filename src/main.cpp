@@ -298,8 +298,8 @@ int main(int argc, const char* argv[])
         start = std::chrono::high_resolution_clock::now();
         writeToFile(outputPath, counters, species_vec, errors_lib1, S_bound, S_unbound, utils::SampleID::mut_bound,
                     utils::SampleID::mut_unbound);
-        writeToFile(outputPath, counters, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound, utils::SampleID::wt_bound,
-                    utils::SampleID::wt_unbound);
+        writeToFile(outputPath, counters_wt, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound,
+                    utils::SampleID::wt_bound, utils::SampleID::wt_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
         std::cout << "Duration: " << diff.count() << " s\n";
