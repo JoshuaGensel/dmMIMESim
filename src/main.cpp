@@ -288,8 +288,8 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Add errors to counts *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        countErrors(errors_lib1, species_vec, S_bound, S_unbound, counters);
-        countErrors(errors_lib2, wtSpecies_vec, wtS_bound, wtS_unbound, counters_wt);
+        species::countErrors(errors_lib1, species_vec, S_bound, S_unbound, counters);
+        species::countErrors(errors_lib2, wtSpecies_vec, wtS_bound, wtS_unbound, counters_wt);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
         std::cout << "Duration: " << diff.count() << " s\n";
@@ -324,8 +324,8 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Add errors to counts *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        countErrors(errors_lib1, species_vec_b, S_bound_bound, S_bound_unbound, counters_bound);
-        countErrors(errors_lib2, species_vec_u, S_unbound_bound, S_unbound_unbound, counters_unbound);
+        species::countErrors(errors_lib1, species_vec_b, S_bound_bound, S_bound_unbound, counters_bound);
+        species::countErrors(errors_lib2, species_vec_u, S_unbound_bound, S_unbound_unbound, counters_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
         std::cout << "Duration: " << diff.count() << " s\n";
