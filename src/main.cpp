@@ -367,7 +367,7 @@ int main(int argc, const char* argv[])
                     for (unsigned sym2 = 0; sym2 < cons.Q - 1; ++sym2)
                     {
                         Mutation mut2{pos2, sym2};
-                        auto doubleKd = effects->getKd(mut1) * effects->getKd(mut2) * effects->getEpistasis(mut1, mut2);
+                        auto doubleKd = effects->getKd(mut1) * effects->getKd(mut2) / effects->getEpistasis(mut1, mut2);
                         outfile << doubleKd << '\n';
                     }
                 }
