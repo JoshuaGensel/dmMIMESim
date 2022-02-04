@@ -108,6 +108,53 @@ std::vector<double> FunctionalSequence::drawEpistasis()
     return epistasis;
 }
 
+// mututally exclusive epistasis of positions that individually have an effect
+// each position only interacts with one other position
+std::vector<double> FunctionalSequence::drawEpistasis(const std::vector<double> kds)
+{
+    std::vector<double> epistasis(this->params.PWVal);
+    std::fill(epistasis.begin(), epistasis.end(), this->params.NO_EPISTASIS);
+
+    std::default_random_engine& generator = Generator::get_instance()->engine;
+    std::bernoulli_distribution bd(this->params.P_EPISTASIS);
+    std::lognormal_distribution<double> lnd(0, 1);
+
+    // pre-calculate number of pairs preceeding pairs(pos_i, ...) (triangle numbers)
+    std::vector<int> n_pairs(this->params.L - 1); // (1,2), (1,3), (1,4), ..., (L-1,L)
+    std::iota(n_pairs.begin(), n_pairs.end(), 1); // 1, 2, 3, ..., L-1
+    std::reverse(n_pairs.begin(), n_pairs.end()); // L-1, L-2, ..., 1
+    int index_offset[this->params.L - 1];
+    std::partial_sum(n_pairs.begin(), n_pairs.end(), index_offset); // L-1, (L-1)+(L-2), ..., L*(L-1)/2
+
+    std::vector<int> has_effect; // single position has effect
+
+    for (int i = 0; i < kds.size(); ++i)
+    {
+        if (kds[i] != this->params.KD_WT)
+        {
+            has_effect.push_back(i);
+        }
+    }
+    std::shuffle(has_effect.begin(), has_effect.end(), generator);
+
+    int counter = 0;
+    while (counter < has_effect.size() - 1)
+    {
+        if (bd(generator))
+        {
+            int pos1 = std::min(has_effect[counter], has_effect[counter + 1]);
+            int pos2 = std::max(has_effect[counter], has_effect[counter + 1]);
+
+            int pair_index = pos2 + (pos1 > 0 ? index_offset[pos1 - 1] : 0);
+            epistasis[pair_index] = lnd(generator);
+            ++counter;
+        }
+        ++counter;
+    }
+
+    return epistasis;
+}
+
 std::vector<double> FunctionalSequence::readEpistasis(const std::string& inputPath)
 {
     fs::path epiFile(fs::canonical(inputPath) / "pairwise_epistasis.txt");
