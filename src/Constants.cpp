@@ -104,6 +104,7 @@ namespace constants
             unsigned int M = 12 * pow(10, 6);
             unsigned int seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 
+            unsigned int max_mut = -1;
             double B_tot = 2.0;
             // if the output directory contains the parameter file, read it
             if (fs::exists(paraFile) && fs::is_regular_file(paraFile))
@@ -147,6 +148,8 @@ namespace constants
                                 p_epistasis = std::stod(val);
                             if (param == "seed")
                                 seed = std::stoi(val);
+                            if (param == "max_mut")
+                                max_mut = std::stoi(val);
                             if (param == "B_tot")
                                 B_tot = std::stod(val);
                         }
@@ -170,9 +173,20 @@ namespace constants
             }
 
             // Create constants which are used through out this test set
-            Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, outputPath);
-
-            return *cons;
+            if (max_mut == -1)
+            {
+                // no fixed max_mut
+                Constants* cons =
+                    new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, outputPath);
+                return *cons;
+            }
+            else
+            {
+                // with fixed max_mut
+                Constants* cons =
+                    new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, max_mut, outputPath);
+                return *cons;
+            }
         }
         else
         {
