@@ -88,7 +88,7 @@ std::tuple<species::species_map, species::species_map, constants::Constants> sec
     return result;
 }
 
-std::tuple<count::counter_collection, std::valarray<unsigned int>, std::valarray<unsigned int>>
+std::tuple<count::counter_collection, std::valarray<unsigned int>, std::valarray<unsigned int>, double>
 runSelection(species::species_map& species_vec, const constants::Constants& params)
 {
     std::cout << "****** Solve ODE to infer bound and unbound fraction *******" << std::endl;
@@ -104,7 +104,7 @@ runSelection(species::species_map& species_vec, const constants::Constants& para
     //  set up the ODE (binding competition) and solve it to get the bound and unbound fractions (from the total
     //  amount M) in equilibrium
     UnboundProtein f(species_vec);
-    f.solve(S_bound, S_unbound);
+    double B = f.solve(S_bound, S_unbound);
 
     // stimmt ja so nicht mehr, da unrdered map
     //    std::cout << "wt bound unbound freq. " << S_bound[0] << " " << S_unbound[0] << std::endl;
@@ -129,7 +129,7 @@ runSelection(species::species_map& species_vec, const constants::Constants& para
     diff = end - start;
     std::cout << "Duration: " << diff.count() << " s\n";
 
-    return std::make_tuple(counters, S_bound, S_unbound);
+    return std::make_tuple(counters, S_bound, S_unbound, B);
 }
 
 std::tuple<std::vector<std::set<Mutation>>, std::vector<std::set<Mutation>>>
@@ -144,7 +144,7 @@ splitErrorPerPool(std::vector<std::set<Mutation>>& errors, std::valarray<unsigne
 
 void writeToFile(fs::path outputPath, count::counter_collection& counter, species::species_map& species_vec,
                  std::vector<std::set<Mutation>>& errors, std::valarray<unsigned int>& S_bound,
-                 std::valarray<unsigned int>& S_unbound, utils::SampleID boundID, utils::SampleID unboundID)
+                 std::valarray<unsigned int>& S_unbound, double B, utils::SampleID boundID, utils::SampleID unboundID)
 {
     counter.counter_bound_1d.write_to_file(outputPath / "1d" / (utils::SampleIDStr(boundID) + ".txt"));
     counter.counter_unbound_1d.write_to_file(outputPath / "1d" / (utils::SampleIDStr(unboundID) + ".txt"));
@@ -163,6 +163,10 @@ void writeToFile(fs::path outputPath, count::counter_collection& counter, specie
                                   errorsBound, S_bound);
     species::writeSequencesToFile(outputPath / "sequences" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
                                   errorsUnbound, S_unbound);
+
+    std::ofstream outfile(
+        outputPath / ("free_protein_" + utils::SampleIDStr(boundID) + "_" + utils::SampleIDStr(unboundID) + ".txt"));
+    outfile << B << '\n';
 }
 
 int main(int argc, const char* argv[])
@@ -269,6 +273,7 @@ int main(int argc, const char* argv[])
         count::counter_collection counters = std::get<0>(results);
         std::valarray<unsigned int> S_bound = std::get<1>(results);
         std::valarray<unsigned int> S_unbound = std::get<2>(results);
+        double B = std::get<3>(results);
 
         std::cout << "****** Create unmutated wild type library  *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
@@ -285,6 +290,7 @@ int main(int argc, const char* argv[])
         count::counter_collection counters_wt = std::get<0>(wtResults);
         std::valarray<unsigned int> wtS_bound = std::get<1>(wtResults);
         std::valarray<unsigned int> wtS_unbound = std::get<2>(wtResults);
+        double wtB = std::get<3>(wtResults);
 
         std::cout << "****** Add errors to counts *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
@@ -296,9 +302,9 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        writeToFile(outputPath, counters, species_vec, errors_lib1, S_bound, S_unbound, utils::SampleID::mut_bound,
+        writeToFile(outputPath, counters, species_vec, errors_lib1, S_bound, S_unbound, B, utils::SampleID::mut_bound,
                     utils::SampleID::mut_unbound);
-        writeToFile(outputPath, counters_wt, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound,
+        writeToFile(outputPath, counters_wt, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound, wtB,
                     utils::SampleID::wt_bound, utils::SampleID::wt_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
@@ -317,10 +323,12 @@ int main(int argc, const char* argv[])
         count::counter_collection counters_bound = std::get<0>(results_bound);
         std::valarray<unsigned int> S_bound_bound = std::get<1>(results_bound);
         std::valarray<unsigned int> S_bound_unbound = std::get<2>(results_bound);
+        double B_bound = std::get<3>(results_bound);
         auto results_unbound = runSelection(species_vec_u, cons_in);
         count::counter_collection counters_unbound = std::get<0>(results_unbound);
         std::valarray<unsigned int> S_unbound_bound = std::get<1>(results_unbound);
         std::valarray<unsigned int> S_unbound_unbound = std::get<2>(results_unbound);
+        double B_unbound = std::get<3>(results_unbound);
 
         std::cout << "****** Add errors to counts *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
@@ -332,10 +340,10 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        writeToFile(outputPath, counters_bound, species_vec_b, errors_lib1, S_bound_bound, S_bound_unbound,
+        writeToFile(outputPath, counters_bound, species_vec_b, errors_lib1, S_bound_bound, S_bound_unbound, B_bound,
                     utils::SampleID::mut_bound_bound, utils::SampleID::mut_bound_unbound);
         writeToFile(outputPath, counters_unbound, species_vec_u, errors_lib2, S_unbound_bound, S_unbound_unbound,
-                    utils::SampleID::mut_unbound_bound, utils::SampleID::mut_unbound_unbound);
+                    B_unbound, utils::SampleID::mut_unbound_bound, utils::SampleID::mut_unbound_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
         std::cout << "Duration: " << diff.count() << " s\n";
