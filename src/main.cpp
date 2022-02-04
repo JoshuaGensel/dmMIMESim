@@ -56,12 +56,12 @@ std::tuple<species::species_map, species::species_map, constants::Constants> sec
     unsigned int nUnbound = species::speciesMapSum(specOldUnbound);
 
     // change M parameter, all other constants stay the same
-    constants::Constants paramSecondBound =
-        constants::Constants(paramSecond.L, paramSecond.Q, nBound, paramSecond.P_MUT, paramSecond.P_ERR,
-                             paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.OUTPUT_DIR);
-    constants::Constants paramSecondUnbound =
-        constants::Constants(paramSecond.L, paramSecond.Q, nUnbound, paramSecond.P_MUT, paramSecond.P_ERR,
-                             paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.OUTPUT_DIR);
+    constants::Constants paramSecondBound = constants::Constants(
+        paramSecond.L, paramSecond.Q, nBound, paramSecond.P_MUT, paramSecond.P_ERR, paramSecond.P_EFFECT,
+        paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT, paramSecond.OUTPUT_DIR);
+    constants::Constants paramSecondUnbound = constants::Constants(
+        paramSecond.L, paramSecond.Q, nUnbound, paramSecond.P_MUT, paramSecond.P_ERR, paramSecond.P_EFFECT,
+        paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT, paramSecond.OUTPUT_DIR);
 
     std::cout << "****** Create new species *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
@@ -103,7 +103,7 @@ runSelection(species::species_map& species_vec, const constants::Constants& para
     // std::valarray<int> f_unbound_tot(species_vec.size());
     //  set up the ODE (binding competition) and solve it to get the bound and unbound fractions (from the total
     //  amount M) in equilibrium
-    UnboundProtein f(species_vec);
+    UnboundProtein f(species_vec, params);
     double B = f.solve(S_bound, S_unbound);
 
     // stimmt ja so nicht mehr, da unrdered map

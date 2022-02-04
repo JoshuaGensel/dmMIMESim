@@ -16,9 +16,10 @@ class ConstantsTest : public testing::Test
         const double p_error = p_mut / 10;
         const double p_effect = 0.5;
         const double p_epistasis = 0.75;
+        const double B_tot = 2.0;
 
-        params =
-            new constants::Constants(length, q, m, p_mut, p_error, p_effect, p_epistasis, s, std::filesystem::path());
+        params = new constants::Constants(length, q, m, p_mut, p_error, p_effect, p_epistasis, s, B_tot,
+                                          std::filesystem::path());
     }
 
     // Some expensive resource shared by all tests.
@@ -35,8 +36,9 @@ TEST_F(ConstantsTest, ConstructFromValues)
     const double p_error = p_mut / 10;
     const double p_effect = 0.5;
     const double p_epistasis = 0.3;
+    const double B_tot = 2.0;
     constants::Constants cons_val =
-        constants::Constants(length, q, m, p_mut, p_error, p_effect, p_epistasis, s, std::filesystem::path());
+        constants::Constants(length, q, m, p_mut, p_error, p_effect, p_epistasis, s, B_tot, std::filesystem::path());
     EXPECT_EQ(cons_val.L, length);
     EXPECT_EQ(cons_val.Q, q);
     EXPECT_EQ(cons_val.M, m);
@@ -58,12 +60,12 @@ TEST_F(ConstantsTest, ComputeMaxMut)
 {
     EXPECT_EQ(params->MAX_MUT, 4);
 
-    constants::Constants* big_params =
-        new constants::Constants(100, 2, 1200000, 0.01, 0.001, 0.5, 0.75, 0, std::filesystem::temp_directory_path());
+    constants::Constants* big_params = new constants::Constants(100, 2, 1200000, 0.01, 0.001, 0.5, 0.75, 0, 2.0,
+                                                                std::filesystem::temp_directory_path());
     EXPECT_EQ(big_params->MAX_MUT, 8);
 
-    constants::Constants* bigger_params =
-        new constants::Constants(500, 2, 120000, 0.001, 0.0001, 0.5, 0.75, 0, std::filesystem::temp_directory_path());
+    constants::Constants* bigger_params = new constants::Constants(500, 2, 120000, 0.001, 0.0001, 0.5, 0.75, 0, 2.0,
+                                                                   std::filesystem::temp_directory_path());
     EXPECT_EQ(bigger_params->MAX_MUT, 5);
 }
 

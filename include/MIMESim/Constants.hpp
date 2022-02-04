@@ -71,18 +71,23 @@ namespace constants
         // seed for random number generator
         const unsigned int SEED;
 
+        // total amount protein, relative to M
+        const double BTOT = 2.0;
+
         std::vector<unsigned long long> setNMutRange(const unsigned int maxMut, const unsigned int L,
                                                      const unsigned int q);
         const std::vector<long double> setP_NMut(unsigned int max_mut, unsigned int l, double p_mut);
         unsigned int computeMaxMut(unsigned int m, unsigned int l, double p_mut);
 
         Constants(unsigned int length, unsigned int q, unsigned int m, double p_mut, double p_error, double p_effect,
-                  double p_epistasis, unsigned int seed, fs::path outputDir)
+                  double p_epistasis, unsigned int seed, double B_tot, fs::path outputDir)
             : L{length}, M{m}, SVal{length * (q - 1)}, PWVal{uint((length * (length - 1) / 2) * std::pow(q - 1, 2))},
               Q{q}, P_MUT{p_mut}, P_ERR{p_error}, P_EFFECT{p_effect}, P_EPISTASIS{p_epistasis}, MAX_MUT{computeMaxMut(
                                                                                                     m, length, p_mut)},
               NMUT_RANGE{setNMutRange(computeMaxMut(m, length, p_mut), length, q)},
-              P_NMUT{setP_NMut(computeMaxMut(m, length, p_mut), length, p_mut)}, SEED{seed}, OUTPUT_DIR{outputDir} {};
+              P_NMUT{setP_NMut(computeMaxMut(m, length, p_mut), length, p_mut)}, SEED{seed}, BTOT{B_tot},
+              OUTPUT_DIR{outputDir} {};
+
 
         // Constructor for combining species sets; most params are the same as in params2, except MAX_MUT related params
         Constants(Constants const& params1, Constants const& params2)
@@ -92,7 +97,7 @@ namespace constants
                                       params2.L, params2.Q)},
               SVal{params2.SVal}, PWVal{params2.PWVal}, P_MUT{params2.P_MUT}, P_ERR{params2.P_ERR},
               P_EFFECT{params2.P_EFFECT}, P_EPISTASIS{params2.P_EPISTASIS}, P_NMUT{params2.P_NMUT}, SEED{params2.SEED},
-              OUTPUT_DIR{params2.OUTPUT_DIR} {};
+              BTOT{params2.BTOT}, OUTPUT_DIR{params2.OUTPUT_DIR} {};
     };
 
     /**

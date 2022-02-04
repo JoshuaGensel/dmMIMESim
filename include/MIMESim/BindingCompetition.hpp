@@ -24,11 +24,7 @@ class UnboundProtein : public cppoptlib::BoundedProblem<double>
   private:
     /**** Constants regarding ODE solving *****/
     // the total amount of Protein
-    // TODO the amount of protein in relation to the amount of sequences, change into total numbers?
-    static constexpr double B_TOT = 2.0;
-    // TODO: Umbau nach counts
-    // static constexpr int B_TOT = 12*pow(10,6);
-
+    const double B_TOT;
     // species kds
     const std::valarray<kd_type> kds;
     // species frequencies
@@ -53,9 +49,9 @@ class UnboundProtein : public cppoptlib::BoundedProblem<double>
     // frequencies(getSpeciesFrequencies(spec)) {};
     // TODO: Umbau nach counts
     // TODO: counts und kds in einer rutsche füllen
-    UnboundProtein(const species::species_map& spec)
-        : Superclass{1}, kds{getSpeciesKds(spec)}, frequencies{getSpeciesFrequencies(spec)}, counts{getSpeciesCounts(
-                                                                                                 spec)} {};
+    UnboundProtein(const species::species_map& spec, const constants::Constants& params)
+        : Superclass{1}, kds{getSpeciesKds(spec)},
+          frequencies{getSpeciesFrequencies(spec)}, counts{getSpeciesCounts(spec)}, B_TOT{params.BTOT} {};
 
     // the objective to be minimised
     // TODO: Umbau nach counts
@@ -72,7 +68,7 @@ class UnboundProtein : public cppoptlib::BoundedProblem<double>
     // double solve(std::valarray<double>& S_bound, std::valarray<double>& S_unbound);
     double solve(std::valarray<count_type>& S_bound, std::valarray<count_type>& S_unbound);
 
-    static const count_type getB_tot();
+    const count_type getB_tot();
 
     const std::valarray<kd_type>& getKds() const;
 

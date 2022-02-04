@@ -104,6 +104,7 @@ namespace constants
             unsigned int M = 12 * pow(10, 6);
             unsigned int seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 
+            double B_tot = 2.0;
             // if the output directory contains the parameter file, read it
             if (fs::exists(paraFile) && fs::is_regular_file(paraFile))
             {
@@ -146,6 +147,8 @@ namespace constants
                                 p_epistasis = std::stod(val);
                             if (param == "seed")
                                 seed = std::stoi(val);
+                            if (param == "B_tot")
+                                B_tot = std::stod(val);
                         }
                         infile.close();
                         std::cout << " ... successful." << std::endl;
@@ -167,7 +170,7 @@ namespace constants
             }
 
             // Create constants which are used through out this test set
-            Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, outputPath);
+            Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, outputPath);
 
             return *cons;
         }
@@ -206,6 +209,7 @@ namespace constants
             (*paraStream) << "p_mut\t" << params.P_MUT << '\n';
             (*paraStream) << "p_error\t" << params.P_ERR << '\n';
             (*paraStream) << "seed\t" << params.SEED << '\n';
+            (*paraStream) << "B_tot\t" << params.BTOT << '\n';
             // paraOutStream.close();
         }
     }
