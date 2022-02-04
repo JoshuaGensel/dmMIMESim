@@ -45,7 +45,8 @@ class FunctionalSequence
      */
     std::vector<double> drawEpistasis();
 
-    std::vector<double> drawEpistasis(const std::vector<double> kds);
+    std::vector<double> drawEpistasis_restricted();
+    std::vector<double> drawEpistasis_unrestricted();
 
     /**
      * Reads saved Epistasis values from disk from the inputPath

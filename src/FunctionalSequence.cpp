@@ -93,6 +93,14 @@ std::vector<double> FunctionalSequence::readKdValues(const std::string& inputPat
 
 std::vector<double> FunctionalSequence::drawEpistasis()
 {
+    if (this->params.EPIMUTEXCL)
+        return drawEpistasis_restricted();
+    else
+        return drawEpistasis_unrestricted();
+}
+
+std::vector<double> FunctionalSequence::drawEpistasis_unrestricted()
+{
     std::vector<double> epistasis(this->params.PWVal);
     std::default_random_engine& generator = Generator::get_instance()->engine;
     std::bernoulli_distribution bd(this->params.P_EPISTASIS);
@@ -110,7 +118,7 @@ std::vector<double> FunctionalSequence::drawEpistasis()
 
 // mututally exclusive epistasis of positions that individually have an effect
 // each position only interacts with one other position
-std::vector<double> FunctionalSequence::drawEpistasis(const std::vector<double> kds)
+std::vector<double> FunctionalSequence::drawEpistasis_restricted()
 {
     std::vector<double> epistasis(this->params.PWVal);
     std::fill(epistasis.begin(), epistasis.end(), this->params.NO_EPISTASIS);
@@ -128,9 +136,9 @@ std::vector<double> FunctionalSequence::drawEpistasis(const std::vector<double> 
 
     std::vector<int> has_effect; // single position has effect
 
-    for (int i = 0; i < kds.size(); ++i)
+    for (int i = 0; i < this->kds.size(); ++i)
     {
-        if (kds[i] != this->params.KD_WT)
+        if (this->kds[i] != this->params.KD_WT)
         {
             has_effect.push_back(i);
         }
