@@ -350,9 +350,9 @@ namespace species
         return count;
     }
 
-    void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
-                            const std::string& header)
+    void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool)
     {
+        const std::string header = "speciesID\tcount\tKd\n";
         std::ofstream outfile(out_file);
 
         if (outfile.good())
@@ -369,7 +369,9 @@ namespace species
                     // print SpeciesID
                     outfile << it->first;
                     // print number of sequences in pool
-                    outfile << '\t' << S_pool[specIdx] << '\n';
+                    outfile << '\t' << S_pool[specIdx];
+                    // print species Kd
+                    outfile << '\t' << it->second.getKd() << '\n';
                 }
                 ++specIdx;
             }

@@ -148,8 +148,7 @@ namespace species
      * @param S_pool counts per drawn Species IDs present in pool of interest
      * @param header optional argument. If it is not given, it is assumed that we have species and #occurences
      */
-    void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool,
-                            const std::string& header = "speciesID\tcount\n");
+    void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool);
 
     void writeSequencesToFile(const std::string& out_file, species_map& spec_map,
                               std::vector<std::set<Mutation>> errors, std::valarray<unsigned int> S_pool);
