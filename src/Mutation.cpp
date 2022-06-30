@@ -4,17 +4,24 @@
 
 #include "Mutation.hpp"
 
-Mutation::Mutation(const unsigned int p, const unsigned int s):position(p), symbol(s){}
+Mutation::Mutation(const unsigned int p, const unsigned int s) : position(p), symbol(s) {}
 
-const unsigned int Mutation::getPosition() const {
+const unsigned int Mutation::getPosition() const
+{
     return position;
 }
 
-const unsigned int Mutation::getSymbol() const {
+const unsigned int Mutation::getSymbol() const
+{
     return symbol;
 }
 
-
-bool Mutation::operator<(const Mutation &mut) const {
+bool Mutation::operator<(const Mutation& mut) const
+{
     return this->getPosition() < mut.getPosition();
+}
+
+bool Mutation::operator==(const Mutation& mut) const
+{
+    return this->getPosition() == mut.getPosition();
 }

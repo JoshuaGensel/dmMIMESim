@@ -9,39 +9,43 @@
 #ifndef Utils_hpp
 #define Utils_hpp
 
-#include <vector>
-#include <map>
 #include <filesystem>
+#include <map>
+#include <vector>
 
 namespace fs = std::filesystem;
 
-namespace utils {
+namespace utils
+{
     typedef std::map<unsigned int, unsigned int> mutatedPositions;
 
-    //TODO: refactoring -> besesr zu DCA und in DCABenchmark benutzen
-    unsigned long nChoosek( const unsigned n, const unsigned k);
+    // TODO: refactoring -> besesr zu DCA und in DCABenchmark benutzen
+    long double nChoosek(const unsigned n, const unsigned k);
     std::vector<unsigned int> getBinaryRange(unsigned int maxRange, unsigned int L);
     std::vector<unsigned int> getMultinomialRange(unsigned int maxRange, unsigned int L, unsigned int q);
-    //TODO QUESTION ist in Species vorhanden.... umschiften, ebenso wie mutPosToIndex?
+    // TODO QUESTION ist in Species vorhanden.... umschiften, ebenso wie mutPosToIndex?
     mutatedPositions specIdxToMutPos(const unsigned long specIdx, const unsigned int L, const unsigned int numSymbols,
-                                     const std::vector<unsigned int> &nMutRange);
-    /**
-     * Read in parameters from a given parameter file in the given result directory. If there is no file, use default parameters
-     * TODO: entweder result ordner angeben als Muss, wo ggf die parameter liste drin ist
-     */
-    void readParameters(const fs::path &outputPath);
+                                     const std::vector<unsigned int>& nMutRange);
+
+    enum SampleID : int
+    {
+        wt_bound,
+        wt_unbound,
+        mut_bound,
+        mut_unbound,
+        mut_bound_bound,
+        mut_bound_unbound,
+        mut_unbound_bound,
+        mut_unbound_unbound,
+    };
+
+    // return string identifier for sample as defined in SampleID enum
+    std::string SampleIDStr(SampleID id);
 
     /**
-     * TODO noch abfragen, dass nur bei "" in den cout geschrieben werden soll?
-     * Write parameters into a parameter file in the given output path.
-     * If the path does not exist, the parameters are printed into cout
+     * Split string s into elements separated by delim
      */
-    void writeParameters(const fs::path &outputPath);
-
-    /**
-     * Write parameters into cout
-     */
-    void writeParameters();
+    void split_string(const std::string& s, char delim, std::vector<std::string>& elems);
 }
 
 #endif /* Utils_hpp */

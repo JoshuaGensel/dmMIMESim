@@ -5,8 +5,12 @@ callUTCodeCoverageAnalysis.sh
 # build and hidden files and directories 
 .*
 !\.gitignore
+!\.clang-format
 *build*
-*test*
+*Debug*
+*test/*
+!*test/*.cpp
+!*test/CMakeLists.txt
 *result*
 
 # Prerequisites
