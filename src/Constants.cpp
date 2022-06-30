@@ -104,8 +104,10 @@ namespace constants
             unsigned int M = 12 * pow(10, 6);
             unsigned int seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 
-            unsigned int max_mut = -1;
+            int max_mut = -1;
             double B_tot = 2.0;
+            bool epiMutExcl = false;
+
             // if the output directory contains the parameter file, read it
             if (fs::exists(paraFile) && fs::is_regular_file(paraFile))
             {
@@ -152,6 +154,11 @@ namespace constants
                                 max_mut = std::stoi(val);
                             if (param == "B_tot")
                                 B_tot = std::stod(val);
+                            if (param == "epistasis_mut_excl")
+                            {
+                                if ((val == "true") || (val == "True"))
+                                    epiMutExcl = true;
+                            }
                         }
                         infile.close();
                         std::cout << " ... successful." << std::endl;
@@ -177,14 +184,14 @@ namespace constants
             {
                 // no fixed max_mut
                 Constants* cons =
-                    new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, outputPath);
+                    new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, epiMutExcl, outputPath);
                 return *cons;
             }
             else
             {
                 // with fixed max_mut
-                Constants* cons =
-                    new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, max_mut, outputPath);
+                Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, max_mut,
+                                                epiMutExcl, outputPath);
                 return *cons;
             }
         }
@@ -212,18 +219,23 @@ namespace constants
 
         if ((*paraStream).good())
         {
+            std::string epistasis_mut_excl = params.EPIMUTEXCL ? "true" : "false";
+            (*paraStream) << "seed\t" << params.SEED << '\n';
             (*paraStream) << "### paratemers regarding kd sampling ###\n";
             (*paraStream) << "kd_wt\t" << params.KD_WT << '\n';
             (*paraStream) << "p_effect\t" << params.P_EFFECT << '\n';
             (*paraStream) << "p_epistasis\t" << params.P_EPISTASIS << '\n';
+            (*paraStream) << "epistasis_mut_excl\t" << epistasis_mut_excl << '\n';
             (*paraStream) << "### paramters regarding sequence sampling ###\n";
             (*paraStream) << "L\t" << params.L << '\n';
             (*paraStream) << "q\t" << params.Q << '\n';
             (*paraStream) << "M\t" << params.M << '\n';
             (*paraStream) << "p_mut\t" << params.P_MUT << '\n';
             (*paraStream) << "p_error\t" << params.P_ERR << '\n';
-            (*paraStream) << "seed\t" << params.SEED << '\n';
+            (*paraStream) << "max_mut\t" << params.MAX_MUT << '\n';
+            (*paraStream) << "### paramters regarding binding competition ###\n";
             (*paraStream) << "B_tot\t" << params.BTOT << '\n';
+
             // paraOutStream.close();
         }
     }

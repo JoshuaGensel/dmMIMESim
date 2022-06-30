@@ -56,12 +56,14 @@ std::tuple<species::species_map, species::species_map, constants::Constants> sec
     unsigned int nUnbound = species::speciesMapSum(specOldUnbound);
 
     // change M parameter, all other constants stay the same
-    constants::Constants paramSecondBound = constants::Constants(
-        paramSecond.L, paramSecond.Q, nBound, paramSecond.P_MUT, paramSecond.P_ERR, paramSecond.P_EFFECT,
-        paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT, paramSecond.OUTPUT_DIR);
-    constants::Constants paramSecondUnbound = constants::Constants(
-        paramSecond.L, paramSecond.Q, nUnbound, paramSecond.P_MUT, paramSecond.P_ERR, paramSecond.P_EFFECT,
-        paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT, paramSecond.OUTPUT_DIR);
+    constants::Constants paramSecondBound =
+        constants::Constants(paramSecond.L, paramSecond.Q, nBound, paramSecond.P_MUT, paramSecond.P_ERR,
+                             paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT,
+                             paramSecond.MAX_MUT, paramSecond.EPIMUTEXCL, paramSecond.OUTPUT_DIR);
+    constants::Constants paramSecondUnbound =
+        constants::Constants(paramSecond.L, paramSecond.Q, nUnbound, paramSecond.P_MUT, paramSecond.P_ERR,
+                             paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT,
+                             paramSecond.MAX_MUT, paramSecond.EPIMUTEXCL, paramSecond.OUTPUT_DIR);
 
     std::cout << "****** Create new species *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
@@ -235,7 +237,6 @@ int main(int argc, const char* argv[])
     // get the constants of the simulation from the parameters file
     const constants::Constants& cons = constants::readParameters(outputPath);
     constants::writeParameters(cons);
-    std::cout << "MaxMut " << cons.MAX_MUT << std::endl;
 
     // create an instance of the random number generator
     Generator::create_instance(cons.SEED);
