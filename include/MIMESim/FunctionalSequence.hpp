@@ -87,6 +87,7 @@ class FunctionalSequence
     static FunctionalSequence* create_instance(const std::string& inputPath);
     static FunctionalSequence* get_instance();
     static void release_instance();
+    bool checkValidReadValues();
 
     /**
      * @return Vector of Kd values for or all possible mutations in ascending order.

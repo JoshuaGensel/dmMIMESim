@@ -307,6 +307,10 @@ int main(int argc, const char* argv[])
         effects = (use_prevPath) ? FunctionalSequence::create_instance(prevPath)
                                  : FunctionalSequence::create_instance(workPath);
 
+        if (!effects->checkValidReadValues())
+        {
+            return 4;
+        }
     }
     else
     {

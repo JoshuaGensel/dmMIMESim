@@ -91,6 +91,23 @@ std::vector<double> FunctionalSequence::readKdValues(const std::string& inputPat
     return kds;
 }
 
+bool FunctionalSequence::checkValidReadValues()
+{
+
+    if (this->kds.size() != this->params.L)
+    {
+        std::cerr << "Provided single_kds.txt does not match experiment params (sequence length L)." << std::endl;
+        return false;
+    }
+    if (this->epistasis.size() != this->params.PWVal)
+    {
+        std::cerr << "Provided pairwise_epistasis.txt does not match exp params (sequence length L)." << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 std::vector<double> FunctionalSequence::drawEpistasis()
 {
     if (this->params.EPIMUTEXCL)
