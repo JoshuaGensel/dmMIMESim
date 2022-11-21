@@ -22,7 +22,7 @@ class SpeciesTest : public testing::Test
     // Called before the first test in this test suite.
     void SetUp()
     {
-        params = new constants::Constants(50, 2, 12000, 0.01, 0.001, 0.5, 0.75, 0, 2.0,
+        params = new constants::Constants(50, 2, 12000, 0.01, 0.001, 0.5, 0.75, 0, 2.0, false,
                                           std::filesystem::temp_directory_path());
         Generator::create_instance(params->SEED);
         effects = FunctionalSequence::create_instance(*params);
@@ -42,8 +42,8 @@ class SpeciesTest : public testing::Test
 
 TEST_F(SpeciesTest, SpecIdxToMutPos)
 {
-    constants::Constants* small_params =
-        new constants::Constants(10, 2, 12000, 0.01, 0.001, 0.5, 0.75, 0, 2.0, std::filesystem::temp_directory_path());
+    constants::Constants* small_params = new constants::Constants(10, 2, 12000, 0.01, 0.001, 0.5, 0.75, 0, 2.0, false,
+                                                                  std::filesystem::temp_directory_path());
 
     auto q = small_params->Q;
     auto length = small_params->L;
@@ -187,7 +187,7 @@ TEST_F(SpeciesTest, DrawSpeciesId_big)
 
     // this is a big param setting that should still work
     // when increasng L or Q, one should reduce M!
-    constants::Constants* big_params = new constants::Constants(100, 2, 1200000, 0.01, 0.001, 0.5, 0.3, 0, 2.0,
+    constants::Constants* big_params = new constants::Constants(100, 2, 1200000, 0.01, 0.001, 0.5, 0.3, 0, 2.0, false,
                                                                 std::filesystem::temp_directory_path());
 
     FunctionalSequence::release_instance();
