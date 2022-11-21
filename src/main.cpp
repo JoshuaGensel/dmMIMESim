@@ -22,6 +22,37 @@
 
 namespace fs = std::filesystem;
 
+// source:
+class InputParser
+{
+  public:
+    InputParser(int& argc, const char** argv)
+    {
+        for (int i = 1; i < argc; ++i)
+            this->tokens.push_back(std::string(argv[i]));
+    }
+    /// @author iain
+    const std::string& getCmdOption(const std::string& option) const
+    {
+        std::vector<std::string>::const_iterator itr;
+        itr = std::find(this->tokens.begin(), this->tokens.end(), option);
+        if (itr != this->tokens.end() && ++itr != this->tokens.end())
+        {
+            return *itr;
+        }
+        static const std::string empty_string("");
+        return empty_string;
+    }
+    /// @author iain
+    bool cmdOptionExists(const std::string& option) const
+    {
+        return std::find(this->tokens.begin(), this->tokens.end(), option) != this->tokens.end();
+    }
+
+  private:
+    std::vector<std::string> tokens;
+};
+
 species::species_map firstRoundMutagenesis(fs::path workPath)
 {
     const constants::Constants& params = constants::readParameters(workPath);
@@ -180,18 +211,20 @@ int main(int argc, const char* argv[])
 
     fs::path workPath("../results");
     fs::path prevPath("");
-    bool use_prevPath = false;
+    bool use_prevPath = false; // perform 2nd round, read in data from 1st round
 
-    if (argc > 1)
+    InputParser input(argc, argv);
+
+    const std::string& cmd_workPath = input.getCmdOption("--working-dir");
+    if (!cmd_workPath.empty())
     {
-        workPath = argv[1];
+        workPath = cmd_workPath;
     }
 
-    // TODO: Cleaner solution for this?
-    // TODO: Document that input path can only be used when output path is specified as well.
-    if (argc > 2)
+    const std::string& cmd_prevPath = input.getCmdOption("--previous-dir");
+    if (!cmd_prevPath.empty())
     {
-        prevPath = argv[2];
+        prevPath = cmd_prevPath;
         use_prevPath = true;
     }
 
