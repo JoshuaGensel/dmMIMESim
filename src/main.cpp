@@ -22,9 +22,9 @@
 
 namespace fs = std::filesystem;
 
-species::species_map firstRoundMutagenesis(fs::path outputPath)
+species::species_map firstRoundMutagenesis(fs::path workPath)
 {
-    const constants::Constants& params = constants::readParameters(outputPath);
+    const constants::Constants& params = constants::readParameters(workPath);
 
     std::cout << "****** Create new species *******" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
@@ -37,17 +37,17 @@ species::species_map firstRoundMutagenesis(fs::path outputPath)
     return species_vec;
 }
 
-std::tuple<species::species_map, species::species_map, constants::Constants> secondRoundMutagenesis(fs::path inputPath,
-                                                                                                    fs::path outputPath)
+std::tuple<species::species_map, species::species_map, constants::Constants> secondRoundMutagenesis(fs::path prevPath,
+                                                                                                    fs::path workPath)
 {
     // TODO: fix printing in function readParameters
-    const constants::Constants& paramFirst = constants::readParameters(inputPath);
-    const constants::Constants& paramSecond = constants::readParameters(outputPath);
+    const constants::Constants& paramFirst = constants::readParameters(prevPath);
+    const constants::Constants& paramSecond = constants::readParameters(workPath);
 
     std::cout << "****** Load old species *******" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    species::species_map specOldBound = species::readFromFile(inputPath, utils::SampleID::mut_bound, paramSecond);
-    species::species_map specOldUnbound = species::readFromFile(inputPath, utils::SampleID::mut_unbound, paramSecond);
+    species::species_map specOldBound = species::readFromFile(prevPath, utils::SampleID::mut_bound, paramSecond);
+    species::species_map specOldUnbound = species::readFromFile(prevPath, utils::SampleID::mut_unbound, paramSecond);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
     std::cout << "Duration: " << diff.count() << " s\n";
@@ -144,30 +144,30 @@ splitErrorPerPool(std::vector<std::set<Mutation>>& errors, std::valarray<unsigne
     return std::make_tuple(errorsBound, errorsUnbound);
 }
 
-void writeToFile(fs::path outputPath, count::counter_collection& counter, species::species_map& species_vec,
+void writeToFile(fs::path workPath, count::counter_collection& counter, species::species_map& species_vec,
                  std::vector<std::set<Mutation>>& errors, std::valarray<unsigned int>& S_bound,
                  std::valarray<unsigned int>& S_unbound, double B, utils::SampleID boundID, utils::SampleID unboundID)
 {
-    counter.counter_bound_1d.write_to_file(outputPath / "1d" / (utils::SampleIDStr(boundID) + ".txt"));
-    counter.counter_unbound_1d.write_to_file(outputPath / "1d" / (utils::SampleIDStr(unboundID) + ".txt"));
-    counter.counter_bound_2d.write_to_file(outputPath / "2d" / (utils::SampleIDStr(boundID) + ".txt"));
-    counter.counter_unbound_2d.write_to_file(outputPath / "2d" / (utils::SampleIDStr(unboundID) + ".txt"));
+    counter.counter_bound_1d.write_to_file(workPath / "1d" / (utils::SampleIDStr(boundID) + ".txt"));
+    counter.counter_unbound_1d.write_to_file(workPath / "1d" / (utils::SampleIDStr(unboundID) + ".txt"));
+    counter.counter_bound_2d.write_to_file(workPath / "2d" / (utils::SampleIDStr(boundID) + ".txt"));
+    counter.counter_unbound_2d.write_to_file(workPath / "2d" / (utils::SampleIDStr(unboundID) + ".txt"));
 
-    species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(boundID) + ".txt"), species_vec, S_bound);
-    species::writeSpeciesToFile(outputPath / "species" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
+    species::writeSpeciesToFile(workPath / "species" / (utils::SampleIDStr(boundID) + ".txt"), species_vec, S_bound);
+    species::writeSpeciesToFile(workPath / "species" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
                                 S_unbound);
 
     auto splittedErrors = splitErrorPerPool(errors, S_bound);
     auto errorsBound = std::get<0>(splittedErrors);
     auto errorsUnbound = std::get<1>(splittedErrors);
 
-    species::writeSequencesToFile(outputPath / "sequences" / (utils::SampleIDStr(boundID) + ".txt"), species_vec,
+    species::writeSequencesToFile(workPath / "sequences" / (utils::SampleIDStr(boundID) + ".txt"), species_vec,
                                   errorsBound, S_bound);
-    species::writeSequencesToFile(outputPath / "sequences" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
+    species::writeSequencesToFile(workPath / "sequences" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
                                   errorsUnbound, S_unbound);
 
     std::ofstream outfile(
-        outputPath / ("free_protein_" + utils::SampleIDStr(boundID) + "_" + utils::SampleIDStr(unboundID) + ".txt"));
+        workPath / ("free_protein_" + utils::SampleIDStr(boundID) + "_" + utils::SampleIDStr(unboundID) + ".txt"));
     outfile << B << '\n';
 }
 
@@ -178,54 +178,55 @@ int main(int argc, const char* argv[])
     // measuring realtime duration (see std::clock for cpu time)
     auto start = std::chrono::high_resolution_clock::now();
 
-    fs::path outputPath("../results");
-    fs::path inputPath("");
-    bool use_inputPath = false;
+    fs::path workPath("../results");
+    fs::path prevPath("");
+    bool use_prevPath = false;
 
     if (argc > 1)
     {
-        outputPath = argv[1];
+        workPath = argv[1];
     }
 
     // TODO: Cleaner solution for this?
     // TODO: Document that input path can only be used when output path is specified as well.
     if (argc > 2)
     {
-        inputPath = argv[2];
-        use_inputPath = true;
+        prevPath = argv[2];
+        use_prevPath = true;
     }
 
-    if (!fs::exists(outputPath))
+    if (!fs::exists(workPath))
     {
-        fs::create_directory(outputPath);
-        std::cout << "Create output directory " << fs::canonical(outputPath) << std::endl;
+        fs::create_directory(workPath);
+        std::cout << "Create working directory " << fs::canonical(workPath) << std::endl;
     }
     else
     {
-        std::cout << "Using output directory " << fs::canonical(outputPath) << std::endl;
+        std::cout << "Using working directory " << fs::canonical(workPath) << std::endl;
     }
 
-    if (use_inputPath)
+    if (use_prevPath)
     {
-        if (!fs::exists(inputPath))
+        if (!fs::exists(prevPath))
         {
-            std::cerr << "Input directory does not exist:\n" << fs::canonical(inputPath) << std::endl;
+            std::cerr << "Previous-round directory does not exist:\n" << fs::canonical(prevPath) << std::endl;
             return 1;
         }
         else
         {
-            std::cout << "Using input directory " << fs::canonical(inputPath) << std::endl;
+            std::cout << "Using previous-round directory " << fs::canonical(prevPath) << std::endl;
         }
 
-        if (!fs::exists(inputPath / "single_kds.txt"))
+        if (!fs::exists(prevPath / "single_kds.txt"))
         {
-            std::cerr << "Input file does not exist:\n" << fs::canonical(inputPath) / "single_kds.txt" << std::endl;
+            std::cerr << "Previous-round file does not exist:\n"
+                      << fs::canonical(prevPath) / "single_kds.txt" << std::endl;
             return 2;
         }
-        else if (!fs::exists(inputPath / "pairwise_epistasis.txt"))
+        else if (!fs::exists(prevPath / "pairwise_epistasis.txt"))
         {
-            std::cerr << "Input file does not exist:\n"
-                      << fs::canonical(inputPath) / "pairwise_epistasis.txt" << std::endl;
+            std::cerr << "Previous-round file does not exist:\n"
+                      << fs::canonical(prevPath) / "pairwise_epistasis.txt" << std::endl;
             return 3;
         }
         else
@@ -235,17 +236,17 @@ int main(int argc, const char* argv[])
     }
 
     // get the constants of the simulation from the parameters file
-    const constants::Constants& cons = constants::readParameters(outputPath);
+    const constants::Constants& cons = constants::readParameters(workPath);
     constants::writeParameters(cons);
 
     // create an instance of the random number generator
     Generator::create_instance(cons.SEED);
 
     // create subdirectories for the single and double mutant counts, species and sequences
-    fs::create_directory(outputPath / "2d");
-    fs::create_directory(outputPath / "1d");
-    fs::create_directory(outputPath / "species");
-    fs::create_directory(outputPath / "sequences");
+    fs::create_directory(workPath / "2d");
+    fs::create_directory(workPath / "1d");
+    fs::create_directory(workPath / "species");
+    fs::create_directory(workPath / "sequences");
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
@@ -256,7 +257,7 @@ int main(int argc, const char* argv[])
 
     // Create or load Ground Truth: Effects of each mutated position and epistatic effects and sequencing noise
     auto* effects =
-        (use_inputPath) ? FunctionalSequence::create_instance(inputPath) : FunctionalSequence::create_instance(cons);
+        (use_prevPath) ? FunctionalSequence::create_instance(prevPath) : FunctionalSequence::create_instance(cons);
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
@@ -267,9 +268,9 @@ int main(int argc, const char* argv[])
     auto errors_lib2 = species::drawErrors(cons);
 
     // first round of mutagenesis
-    if (!use_inputPath)
+    if (!use_prevPath)
     {
-        species::species_map species_vec = firstRoundMutagenesis(outputPath);
+        species::species_map species_vec = firstRoundMutagenesis(workPath);
         auto results = runSelection(species_vec, cons);
         count::counter_collection counters = std::get<0>(results);
         std::valarray<unsigned int> S_bound = std::get<1>(results);
@@ -303,9 +304,9 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        writeToFile(outputPath, counters, species_vec, errors_lib1, S_bound, S_unbound, B, utils::SampleID::mut_bound,
+        writeToFile(workPath, counters, species_vec, errors_lib1, S_bound, S_unbound, B, utils::SampleID::mut_bound,
                     utils::SampleID::mut_unbound);
-        writeToFile(outputPath, counters_wt, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound, wtB,
+        writeToFile(workPath, counters_wt, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound, wtB,
                     utils::SampleID::wt_bound, utils::SampleID::wt_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
@@ -314,7 +315,7 @@ int main(int argc, const char* argv[])
     // second round of mutagenesis
     else
     {
-        auto results = secondRoundMutagenesis(inputPath, outputPath);
+        auto results = secondRoundMutagenesis(prevPath, workPath);
         species::species_map species_vec_b = std::get<0>(results);
         species::species_map species_vec_u = std::get<1>(results);
         const constants::Constants& cons_in = std::get<2>(results);
@@ -341,9 +342,9 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        writeToFile(outputPath, counters_bound, species_vec_b, errors_lib1, S_bound_bound, S_bound_unbound, B_bound,
+        writeToFile(workPath, counters_bound, species_vec_b, errors_lib1, S_bound_bound, S_bound_unbound, B_bound,
                     utils::SampleID::mut_bound_bound, utils::SampleID::mut_bound_unbound);
-        writeToFile(outputPath, counters_unbound, species_vec_u, errors_lib2, S_unbound_bound, S_unbound_unbound,
+        writeToFile(workPath, counters_unbound, species_vec_u, errors_lib2, S_unbound_bound, S_unbound_unbound,
                     B_unbound, utils::SampleID::mut_unbound_bound, utils::SampleID::mut_unbound_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
@@ -353,9 +354,9 @@ int main(int argc, const char* argv[])
     std::cout << "****** Write true values to files *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
     std::cout << "Write epistasis" << std::endl;
-    effects->writeEpistasisToFile(outputPath / "pairwise_epistasis.txt");
+    effects->writeEpistasisToFile(workPath / "pairwise_epistasis.txt");
     std::cout << "Write KD" << std::endl;
-    effects->writeKdsToFile(outputPath / "single_kds.txt");
+    effects->writeKdsToFile(workPath / "single_kds.txt");
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
@@ -363,7 +364,7 @@ int main(int argc, const char* argv[])
     start = std::chrono::high_resolution_clock::now();
     // write pairwise effects
     std::cout << "Write pairwise effects" << std::endl;
-    std::ofstream outfile(outputPath / "pairwise_kds.txt");
+    std::ofstream outfile(workPath / "pairwise_kds.txt");
     if (outfile.good())
     {
         for (unsigned pos1 = 1; pos1 < cons.L; ++pos1)
