@@ -2,7 +2,7 @@
 
 First round MIME:
 1. Simulate sequence variants in pool of a wild type sequence (random mutagenesis 1)
-2. Randomly assign fitness values for each position-wise mutation and pairwise epistatic effects
+2. Prove ground-truth or randomly assign fitness values for each position-wise mutation and pairwise epistatic effects
 3. Derive species frequencies in equilibrium
 4. Add statistical noise
 5. Output positionwise mutant counts, sequences and the groundtruth
@@ -33,17 +33,36 @@ This will create the binary file *.../MIMESim/build/bin/MIMESim_prog*
 ## Run
 
 
+
 Running the program with an optional parameter, giving the path to the result directory. 
 If no parameter is given, the output will be written to the newly created directory *../results*.
 
+### 1: default
 ```
-/path/to/MIMESim_prog [result_directory1] # first round simulation
-/path/to/MIMESim_prog [result_directory2] [result_directory1] # second round simulation
+/path/to/MIMESim_prog
 ```
+First round simulation. Program will create dir `../results` and write outputs and (default) params to this folder.
 
-If no parameter file is present in the given result directory (or no directory was given at all), the programm will run the simulation with default paraters *(tba)*.
-After the run it will create the parameter file in the result directory together with the other output. 
+### 2: working-dir
 
+```
+/path/to/MIMESim_prog --working-dir path/to/read/and/write
+```
+First round simulation. Program will use parameters.txt from `working-dir` if available.
+
+### 3: read-gt
+```
+/path/to/MIMESim_prog [--working-dir path/to/read/and/write] --read-gt
+```
+First round simulation. Program will use ground truth files (`single_kds.txt`, `pairwise_epistasis.txt`) from `working-dir` (default=`.../results`). Exits with error if files are not available.
+
+### 4: previous-dir
+```
+/path/to/MIMESim_prog [--working-dir path/to/read/and/write] --previous-dir path/to/results/first/round/exp 
+```
+Second round simulation. Program will use the outputs from a previous first-round simulation stored in `previous-path` as starting point of a second round.  
+
+### parameters
 If you want to set the simulation parameters, create the *parameters.txt* file in the desired result directory and add the following parameter names and values (tab separated):
 
 | parameter          | type          | description  |
