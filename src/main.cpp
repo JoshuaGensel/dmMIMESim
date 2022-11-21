@@ -212,6 +212,7 @@ int main(int argc, const char* argv[])
     fs::path workPath("../results");
     fs::path prevPath("");
     bool use_prevPath = false; // perform 2nd round, read in data from 1st round
+    bool draw_gt = true;       // draw ground truth randomly
 
     InputParser input(argc, argv);
 
@@ -226,6 +227,14 @@ int main(int argc, const char* argv[])
     {
         prevPath = cmd_prevPath;
         use_prevPath = true;
+        draw_gt = false;
+    }
+
+    // argument is only considered in 1st round experiments!
+    if (input.cmdOptionExists("--read-gt"))
+    {
+        draw_gt = false;
+        prevPath = workPath;
     }
 
     if (!fs::exists(workPath))
@@ -249,17 +258,20 @@ int main(int argc, const char* argv[])
         {
             std::cout << "Using previous-round directory " << fs::canonical(prevPath) << std::endl;
         }
+    }
 
+    if (!draw_gt)
+    {
         if (!fs::exists(prevPath / "single_kds.txt"))
         {
-            std::cerr << "Previous-round file does not exist:\n"
-                      << fs::canonical(prevPath) / "single_kds.txt" << std::endl;
+            std::cerr << "Ground truth file does not exist: " << fs::canonical(prevPath) / "single_kds.txt"
+                      << std::endl;
             return 2;
         }
         else if (!fs::exists(prevPath / "pairwise_epistasis.txt"))
         {
-            std::cerr << "Previous-round file does not exist:\n"
-                      << fs::canonical(prevPath) / "pairwise_epistasis.txt" << std::endl;
+            std::cerr << "Ground truth file does not exist: " << fs::canonical(prevPath) / "pairwise_epistasis.txt"
+                      << std::endl;
             return 3;
         }
         else
@@ -288,9 +300,18 @@ int main(int argc, const char* argv[])
     std::cout << "****** Sample mutational effects *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
+    FunctionalSequence* effects;
     // Create or load Ground Truth: Effects of each mutated position and epistatic effects and sequencing noise
-    auto* effects =
-        (use_prevPath) ? FunctionalSequence::create_instance(prevPath) : FunctionalSequence::create_instance(cons);
+    if (!draw_gt)
+    {
+        effects = (use_prevPath) ? FunctionalSequence::create_instance(prevPath)
+                                 : FunctionalSequence::create_instance(workPath);
+
+    }
+    else
+    {
+        effects = FunctionalSequence::create_instance(cons);
+    }
 
     end = std::chrono::high_resolution_clock::now();
     diff = end - start;
