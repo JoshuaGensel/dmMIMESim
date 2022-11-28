@@ -10,7 +10,6 @@ class Mutation
   private:
     // position from 1 .. L
     unsigned int position; // const! not declared here, to be able to put it into a set
-    // TODO ändern? von 1 .. Q-1?
     // mutation symbol from 0 .. Q-1 -1
     unsigned int symbol; // const! not declared here, to be able to put it into a set
 

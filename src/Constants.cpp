@@ -131,7 +131,7 @@ namespace constants
 
                             std::getline(lineSS, param, '\t');
                             std::getline(lineSS, val, '\t');
-                            // TODO ist erstmal fest auf 1.0 gesetzt und M auf 12 Mio
+                            // TODO make variable
                             // if(param == "kd_wt")
                             //     kd_wt = std::stoi(val);
                             if (param == "M")
@@ -165,7 +165,6 @@ namespace constants
                     }
                     catch (const std::invalid_argument& ia)
                     {
-                        // TODO anders mit umgehen?
                         std::cerr << "Error in parameter file. Invalid argument for parameter " << param << " ("
                                   << ia.what() << ")" << '\n';
                         std::cout << "Using default parameters." << std::endl;
@@ -176,7 +175,6 @@ namespace constants
             {
                 //...if no config file is given, create the constants with the default parameter values
                 std::cout << "No parameter file given. Using default parameters." << std::endl;
-                // TODO test case für parameter einlesen
             }
 
             // Create constants which are used through out this test set
@@ -199,7 +197,6 @@ namespace constants
         {
             std::cerr << "Output path is a mandatory parameter" << std::endl;
             throw std::invalid_argument("Output path is a mandatory parameter");
-            // std::exit(1);
         }
     }
 
@@ -235,8 +232,6 @@ namespace constants
             (*paraStream) << "max_mut\t" << params.MAX_MUT << '\n';
             (*paraStream) << "### paramters regarding binding competition ###\n";
             (*paraStream) << "B_tot\t" << params.BTOT << '\n';
-
-            // paraOutStream.close();
         }
     }
 

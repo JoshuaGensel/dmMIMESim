@@ -40,30 +40,6 @@ namespace species
         return species::specIdxToMutPos(this->specId, this->params);
     }
 
-    // TODO weg
-    //    ref::ref_map Species::createRead() {
-    //        constants::Constants& constants = constants::Constants::get_instance();
-    //        ref::ref_map read;
-    //        read.reserve(constants.L);
-    //        for(unsigned i=1; i <= constants.L; ++i) {
-    //            //TODO Workaround to set wildtype to A and mutations to C
-    //            read.add({i, nucleotid::nucleobase{1}});
-    //        }
-    //
-    //        for(auto& mutPos:mutatedPositions) {
-    //            auto pos = std::find_if(read.begin(), read.end(), [&mutPos](const auto& val)
-    //            {
-    //                return val.first == mutPos.getPosition();
-    //            });
-    //            if(pos != read.end())
-    //                read.remove(pos);
-    //            //TODO workaround: add the mutation as nucleobase, here simply  + 1 (->wt=A=1), create a wt to mut
-    //            interpretation, or make it more general also for AA...and +1 since muts start at 0
-    //            read.add({mutPos.getPosition(), nucleotid::nucleobase{int(mutPos.getSymbol()+1+1)}});
-    //        }
-    //        return read;
-    //    }
-
     const unsigned long long Species::getSpecId() const
     {
         return specId;
@@ -113,9 +89,6 @@ namespace species
     {
         --this->count;
     }
-    //    const ref::ref_map &Species::getRead() const {
-    //        return read;
-    //    }
 
     std::valarray<char> Species::getSequence(std::set<Mutation> errors)
     {
@@ -240,18 +213,15 @@ namespace species
     {
         FunctionalSequence* effects = FunctionalSequence::get_instance();
         Species::kd = 1.0;
-        // TODO nachfragen: wie setzt sich der Gesamteffekt zusammen? prod(Kd_i)*prod(e_ij) ?  oder prod(e_ij^2)?
         // additive effect of epistasis (since we have the exponential of the epistasis here, it is multiplicative
         for (auto mutPos1_it = begin(Species::mutatedPositions); mutPos1_it != end(Species::mutatedPositions);
              ++mutPos1_it)
         {
             Species::kd *= effects->getKd(*mutPos1_it);
-            // std::cout << "mut pos1 " << *mutPos1_it << std::endl;
             for (auto mutPos2_it = mutPos1_it + 1;
                  mutPos1_it != Species::mutatedPositions.end() && mutPos2_it != Species::mutatedPositions.end();
                  ++mutPos2_it)
             {
-                // std::cout << "mut pos2 " << *mutPos2_it << std::endl;
                 // compute the kd for a species by multiplying all single kds of the mutations and add the pairwise
                 // epistasis factor totalEpistasisPerPos[*mutPos1_it-1] *= effects->getEpistasis(*mutPos1_it-1,
                 // *mutPos2_it-1); totalEpistasisPerPos[*mutPos2_it-1] *= effects->getEpistasis(*mutPos1_it-1,
@@ -300,12 +270,6 @@ namespace species
                 currentEntry.first->second.computeSpeciesKd();
             }
             currentEntry.first->second.incrementCount();
-            //            if(species_map.find(id) == species_map.end()) {
-            //                //the id is the key for the map, and also the parameter for the constructor for the
-            //                species class species_map.emplace(id, id); species_map.at(id).computeSpeciesKd();
-            //
-            //            }
-            //            species_map.at(id).incrementCount();
         }
         return species_map;
     }
@@ -406,7 +370,6 @@ namespace species
         }
     }
 
-    // TODO testen
     std::set<Mutation> drawError_2(const constants::Constants& params)
     {
         std::default_random_engine& generator = Generator::get_instance()->engine;
@@ -419,9 +382,6 @@ namespace species
 
         // draw number of errors
         int numErrors = bino(generator);
-
-        // TODO: mal weg lassen, da ich ja eh keine species berechne
-        // numErrors = std::min<int>(numErrors, params.MAX_MUT*2 - mutations.size());
 
         // containing numErrors Mutations with unique position
         std::set<Mutation> uniquePositions;
@@ -452,8 +412,6 @@ namespace species
         return errors;
     }
 
-    // TODO: rekursiver Aufruf? Aber dafür müsste jedesmal für irgendein L' (Restlänger nach aktueller Position) die ID
-    // ranges berechnet werden, oder mache ich das eh?
     mutVector specIdxToMutPos(const unsigned long long specId, const constants::Constants& params)
     {
         auto numMut = getNumberOfMutationsById(specId, params);
@@ -478,7 +436,6 @@ namespace species
                 // for each possible positions within the length the actual mutation covers a range of ids depending on
                 // the residual mutations to follow
                 std::vector<unsigned long> cumSumRange(Lact - (numMutAct - 1));
-                // bool indexFound = false;
                 unsigned int i = 0;
                 // initialise first value of the vector for cummulative sum (do it so complicated to not compute the
                 // whole range if not necessary)
@@ -487,8 +444,6 @@ namespace species
                 while (idAct > cumSumRange[i] && i < Lact - (numMutAct - 1))
                 {
                     ++i;
-                    // for(; i<Lact-(numMutAct-1) && !indexFound; ++i) {
-                    // TODO test
                     cumSumRange[i] =
                         std::roundl(utils::nChoosek(Lact - i - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
                     if (i > 0)
@@ -497,23 +452,18 @@ namespace species
                     }
                 }
 
-                // TODO weg
-                // mutPos[m] = i + 1;
                 //  the symbol of a posisition  is given for (q-1) ^ numMut-1 times (e.g. with three mutations and 2
                 //  symbols 2 ^2 times) : AAA, AAB, ABA, ABB
                 int symbolCombiPerPos = std::pow(mSymbols, numMutAct - 1);
-                // TODO getestet? wenn ja, comments weg
                 // find symbol
                 unsigned mut = (int)std::floor((idAct - 1) / symbolCombiPerPos) % mSymbols;
 
-                unsigned int pos = i + 1; // TODO Utils hat noch das- *cumSumRange.begin()
+                unsigned int pos = i + 1;
                 unsigned int prePos = mutPos.begin() == mutPos.end() ? 0 : mutPos.rbegin()->getPosition();
 
                 // arguments: the two pair_constructor parameter pos and mut, adding the last cummulative position
                 //  (= position seend frim the beginning of the sequence)
                 mutPos.emplace_back(pos + prePos, mut);
-
-                // indexFound = true;
 
                 // the residual length after the actual mutation
                 Lact = Lact - pos;
@@ -527,7 +477,6 @@ namespace species
         return (mutPos);
     }
 
-    // TODO testen! (vorallem das mit partial sum)
     unsigned long long mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params)
     {
         unsigned numMut = mutPos.size();
@@ -554,7 +503,6 @@ namespace species
             {
                 if (numMutAct == 1)
                 {
-                    // TODO überall checken: the possible mutations are represented from 0 upwards
                     specId += mutation.getPosition() + mutation.getSymbol();
                 }
                 else
@@ -564,7 +512,6 @@ namespace species
                     {
                         for (int i = 1; i < mutation.getPosition(); ++i)
                         {
-                            // specId += utils::nChoosek(Lact-i, numMutAct-1);
                             specId +=
                                 std::roundl(utils::nChoosek(Lact - i, numMutAct - 1) * pow(params.Q - 1, numMutAct));
                         }
@@ -716,7 +663,6 @@ namespace species
         }
 
         int specIdx = 0;
-        // for (auto it = spec_map.begin(); it != spec_map.end(); ) {
         for (auto it = spec_map.begin(); it != spec_map.end(); ++it)
         {
 
@@ -754,7 +700,6 @@ namespace species
                 }
             }
             ++specIdx;
-            // spec_map.erase(it++);
         }
         return counters;
     }

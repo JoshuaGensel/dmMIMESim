@@ -122,8 +122,6 @@ std::vector<double> FunctionalSequence::drawEpistasis_unrestricted()
     std::default_random_engine& generator = Generator::get_instance()->engine;
     std::bernoulli_distribution bd(this->params.P_EPISTASIS);
     std::lognormal_distribution<double> lnd(0, 1);
-    // TODO: Kann epistasis auch vorhanden sein, wenn eine einzelmutation keinen effect hat? (hatte es in R so
-    // realisiert dass beide einene Effekt haben müssen.
     for (int i = 0; i < epistasis.size(); ++i)
     {
         // first sample if position pair has epistatic effect (bernoulli) and then the value of the epistasis (log
@@ -203,7 +201,6 @@ const double FunctionalSequence::getKd(const Mutation& p) const
     return kds.at(getVectorIndex(p));
 }
 
-// TODO test
 unsigned int FunctionalSequence::getVectorIndex(const Mutation& m) const
 {
     // all positions x symbols before (+ 1 for actual position -1 as index starts at 0) + the symbol of the actual
@@ -211,33 +208,19 @@ unsigned int FunctionalSequence::getVectorIndex(const Mutation& m) const
     return ((m.getPosition() - 1) * (this->params.Q - 1) + m.getSymbol());
 }
 
-// TODO test
 unsigned long long FunctionalSequence::getMatrixVectorIndex(const Mutation& a, const Mutation& b) const
 {
-    // TODO weg damit nach test?
-    // i must always be smaller than j
-    //    if(pos1 > pos2) {
-    //        auto k = pos2;
-    //        auto l = mut2;
-    //        pos2=pos1;
-    //        pos1=k;
-    //        mut2=mut1;
-    //        mut1=l;
-    //    }
     // same as in R mut -1 because index starts at 0
     // for the index calculation, the positions have to be in ascending order
     // unsigned int res = (c.L*(c.L-1)/2) - ((c.L-i+1)*((c.L-i+1)-1)/2) + j - i - 1;
-    // TODO oha... determine the id of the sequence with pairwise mutations and substract the ID range for the
+    // --> determine the id of the sequence with pairwise mutations and substract the ID range for the
     // sequences with no or 1 mutation
     unsigned long long res;
     if (a.getPosition() < b.getPosition())
-        // TODO diese Funktionen woanders hin als in Species? Eigentlich hat Species ja nichts mit Functional
-        // Sequence zu tun
         res = species::mutPosToSpecIdx({a, b}, this->params) - this->params.NMUT_RANGE.at(1) - 1;
     else if (a.getPosition() > b.getPosition())
         res = species::mutPosToSpecIdx({b, a}, this->params) - this->params.NMUT_RANGE.at(1) - 1;
     else
-        // TODO throw exception for i == j?
         std::cerr << "Two mutations at the same position are not possible.";
 
     return res;

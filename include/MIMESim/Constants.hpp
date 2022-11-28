@@ -63,9 +63,7 @@ namespace constants
         // probability for sequencing error
         const double P_ERR = 0.001;
         // id range for 0..MAX_MUT mutations for a sequence length L: (0 -> 1, 1 -> 2..L+1, etc)
-        // const std::array<unsigned int, MAX_MUT+1> NMUT_RANGE;
         const std::vector<unsigned long long> NMUT_RANGE;
-        // const std::array<double, MAX_MUT+1> P_NMUT;
         const std::vector<long double> P_NMUT;
 
         // seed for random number generator
@@ -114,12 +112,10 @@ namespace constants
     /**
      * Read in parameters from a given parameter file in the given result directory. If there is no file, use
      * default parameters
-     * TODO: entweder result ordner angeben als Muss, wo ggf die parameter liste drin ist
      */
     const Constants& readParameters(const fs::path& outputPath);
 
     /**
-     * TODO noch abfragen, dass nur bei "" in den cout geschrieben werden soll?
      * Write parameters into a parameter file in the given output path.
      * If the path does not exist, the parameters are printed into cout
      */

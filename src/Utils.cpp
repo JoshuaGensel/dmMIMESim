@@ -14,8 +14,6 @@
 #include <math.h>
 #include <numeric>
 
-// TODO: Utils in DCA packen, da es nicht Benchmark spezifisch ist
-
 namespace utils
 {
 
@@ -63,8 +61,6 @@ namespace utils
         return nMutRange;
     }
 
-    // TODO ist das nicht schon in Species? Welches ist jetzt besser??
-    // TODO kann dann weg? zumindest auskommentieren, weil es erstmal nicht benutzt wird.
     mutatedPositions specIdxToMutPos(const unsigned long specIdx, const unsigned int L, const unsigned int numSymbols,
                                      const std::vector<unsigned int>& nMutRange)
     {
@@ -74,11 +70,6 @@ namespace utils
         {
             // number of mutations in sequence
             unsigned int numMut = std::lower_bound(nMutRange.begin(), nMutRange.end(), specIdx) - nMutRange.begin();
-            // std::cout << "id " << specIdx << " numMut " << numMut << std::endl;
-            // collect the mutated positions and the mutation
-            // std::map<unsigned int, unsigned int> pos;
-            // std::vector<unsigned int> pos(numMut);
-            // std::vector<unsigned int> mut(numMut);
             // id 1 = no mutations: don't start to compute anything
             if (numMut != 0)
             {
@@ -94,7 +85,6 @@ namespace utils
                     // for each possible positions within the length the actual mutation covers a range of ids
                     // depending on the residual mutations to follow
 
-                    // cumSumRange <- cumsum(choose(Lact-seq(Lact-(numMutAct-1)), numMutAct-1))
                     std::vector<long> cumSumRange(Lact - (numMutAct - 1));
                     auto n = Lact - 1;
                     for (unsigned int i = 0; i < cumSumRange.size(); ++i)
@@ -105,7 +95,6 @@ namespace utils
                         //  not change in every step)
                         cumSumRange[i] = utils::nChoosek(n, numMutAct - 1) * std::pow(numSymbols, numMut);
                         --n;
-                        // std::cout << "cumSumRange von " << i << " " << cumSumRange[i] << std::endl;
                     }
 
                     std::partial_sum(cumSumRange.begin(), cumSumRange.end(), cumSumRange.begin());
@@ -123,7 +112,6 @@ namespace utils
                     if (mutPos.begin() != mutPos.end())
                         prePos = mutPos.rbegin()->first;
                     mutPos.insert({pos + prePos, mut});
-                    // std::cout << "mut " << m << ": " << pos <<" " << mut << std::endl;
                     //  the residual length after the actual mutation
                     Lact = Lact - pos;
                     // the redsiudal number of mutations after the actual mutation
@@ -134,11 +122,6 @@ namespace utils
                     idAct = idAct - (pos == 1 ? 0 : cumSumRange[pos - 2]);
                     ++m;
                 } while (m < numMut);
-                //                // .... and get the correct positions within the sequence with cumsum
-                //                std::partial_sum(pos.begin(), pos.end(), pos.begin());
-                //            for(auto p : pos)
-                //                std::cout << " " << p;
-                // std::cout << std::endl;
             }
         }
         else

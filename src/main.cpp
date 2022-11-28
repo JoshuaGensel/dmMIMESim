@@ -71,7 +71,6 @@ species::species_map firstRoundMutagenesis(fs::path workPath)
 std::tuple<species::species_map, species::species_map, constants::Constants> secondRoundMutagenesis(fs::path prevPath,
                                                                                                     fs::path workPath)
 {
-    // TODO: fix printing in function readParameters
     const constants::Constants& paramFirst = constants::readParameters(prevPath);
     const constants::Constants& paramSecond = constants::readParameters(workPath);
 
@@ -126,23 +125,13 @@ runSelection(species::species_map& species_vec, const constants::Constants& para
 {
     std::cout << "****** Solve ODE to infer bound and unbound fraction *******" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    // TODO: Umbau nach counts
-    // std::valarray<double> f_bound_tot;
-    // std::valarray<double> f_unbound_tot;
     std::valarray<unsigned int> S_bound(species_vec.size());
     std::valarray<unsigned int> S_unbound(species_vec.size());
 
-    // std::valarray<int> f_bound_tot(species_vec.size());
-    // std::valarray<int> f_unbound_tot(species_vec.size());
     //  set up the ODE (binding competition) and solve it to get the bound and unbound fractions (from the total
     //  amount M) in equilibrium
     UnboundProtein f(species_vec, params);
     double B = f.solve(S_bound, S_unbound);
-
-    // stimmt ja so nicht mehr, da unrdered map
-    //    std::cout << "wt bound unbound freq. " << S_bound[0] << " " << S_unbound[0] << std::endl;
-    //    std::cout << "mut bound unbound freq. " << S_bound[1] << " " << S_unbound[1] << std::endl;
-    //    std::cout << "mut bound unbound freq. " << S_bound[2] << " " << S_unbound[2] << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
@@ -152,9 +141,6 @@ runSelection(species::species_map& species_vec, const constants::Constants& para
     start = std::chrono::high_resolution_clock::now();
     // Carefull: The map is extended by species that occur only because of sequencing error, hence the length of
     // S_bound and S_unbound dont fit any more with the length of the map
-    // TODO: Umbau nach counts
-    // TODO weg
-    // species::addCountsWithError(S_bound, S_unbound, species_vec);
 
     auto counters = species::countMutations(S_bound, S_unbound, species_vec, params);
 

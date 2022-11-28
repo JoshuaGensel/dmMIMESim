@@ -23,17 +23,8 @@
 
 namespace species
 {
-    // TODO weg nach test
-    // typedef std::array<unsigned int, Constants::MAX_MUT> mutArr;
-    // typedef std::vector<unsigned int> mutVector;
-    // TODO ist ja eigentlich generell, nicht nur Species. Irgedwo anders hinschieben?
-    // TODO stattdessen einfach Mutation?
-    // typedef std::pair<unsigned, unsigned> posMutPair;
     // contain each mutated position with the respective mutation
     typedef std::vector<Mutation> mutVector;
-    // typedef std::map<int, std::array<int, 2>> idCountMap;
-    // TODO umändern in unordered_map und vergleichen
-    typedef std::unordered_map<int, int> idCountMap;
 
     class Species
     {
@@ -44,13 +35,9 @@ namespace species
         unsigned int count;
         const unsigned int numMut;
         // mutatated positions need to be in ascending order
-        // TODO where to test this, exception?
         const mutVector mutatedPositions;
-        // double freq;
         // KD of the the given sequence, adding all single Kds of the mutations and the epistatic effects for pairs
         double kd = 1.0;
-        // TODO for later count purposes directly create a read. nee weg damit, nimmt zu viel platz ein
-        // const ref::ref_map read;
 
         /**** after ODE: save bound and unbound fraction information ****/
 
@@ -91,10 +78,6 @@ namespace species
 
         // generate nt sequence based on mutated positions and optional errors
         std::valarray<char> getSequence(std::set<Mutation> errors = {});
-
-        // TODO weg
-        // const ref::ref_map &getRead() const;
-        // ref::ref_map createRead();
 
         unsigned int getMutCountBound() const;
 
