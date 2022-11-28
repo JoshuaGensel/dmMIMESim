@@ -18,11 +18,12 @@ namespace fs = std::filesystem;
 namespace utils
 {
     typedef std::map<unsigned int, unsigned int> mutatedPositions;
+    typedef unsigned long long id;
 
     long double nChoosek(const unsigned n, const unsigned k);
     std::vector<unsigned int> getBinaryRange(unsigned int maxRange, unsigned int L);
     std::vector<unsigned int> getMultinomialRange(unsigned int maxRange, unsigned int L, unsigned int q);
-    mutatedPositions specIdxToMutPos(const unsigned long specIdx, const unsigned int L, const unsigned int numSymbols,
+    mutatedPositions specIdxToMutPos(const utils::id specIdx, const unsigned int L, const unsigned int numSymbols,
                                      const std::vector<unsigned int>& nMutRange);
 
     enum SampleID : int

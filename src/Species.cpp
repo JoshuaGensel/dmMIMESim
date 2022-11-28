@@ -24,7 +24,7 @@
 
 namespace species
 {
-    Species::Species(const unsigned long long id, const constants::Constants& param)
+    Species::Species(const utils::id id, const constants::Constants& param)
         : specId{id}, params{param}, numMut{getNumberOfMutationsById()}, mutatedPositions{specIdxToMutPos()}, count{0},
           mutCountBound{0}, mutCountUnbound{0}, errorCountBound{0}, errorCountUnbound{0}
     {
@@ -40,7 +40,7 @@ namespace species
         return species::specIdxToMutPos(this->specId, this->params);
     }
 
-    const unsigned long long Species::getSpecId() const
+    const utils::id Species::getSpecId() const
     {
         return specId;
     }
@@ -242,14 +242,14 @@ namespace species
         // first draw a the number of mutations from 0 to MAX_MUT, with the given probabilities...
         std::discrete_distribution<> d(begin(params.P_NMUT), end(params.P_NMUT));
         // then draw uniformly the id from the id range for this particular number of mutations
-        std::vector<std::uniform_int_distribution<unsigned long long>> unif(params.MAX_MUT + 1);
+        std::vector<std::uniform_int_distribution<utils::id>> unif(params.MAX_MUT + 1);
 
-        unif[0] = std::uniform_int_distribution<unsigned long long>(1, 1);
+        unif[0] = std::uniform_int_distribution<utils::id>(1, 1);
         // create distributions for all numbers of mutations beforehand
         for (int numMut = 1; numMut <= params.MAX_MUT; ++numMut)
         {
-            unif[numMut] = std::uniform_int_distribution<unsigned long long>(params.NMUT_RANGE[numMut - 1] + 1,
-                                                                             params.NMUT_RANGE[numMut]);
+            unif[numMut] =
+                std::uniform_int_distribution<utils::id>(params.NMUT_RANGE[numMut - 1] + 1, params.NMUT_RANGE[numMut]);
         }
         // count the given species
         for (int n = 0; n < params.M; ++n)
@@ -257,7 +257,7 @@ namespace species
             // draw number of mutations
             const int numMut = d(generator);
             // if no mutations, the id is always 1
-            unsigned long long id = 1;
+            utils::id id = 1;
             if (numMut > 0)
             {
                 id = unif[numMut](generator);
@@ -290,7 +290,7 @@ namespace species
             std::vector<std::string> row_values;
             utils::split_string(line, '\t', row_values);
 
-            unsigned long long id = std::stoull(row_values.at(0));
+            utils::id id = std::stoull(row_values.at(0));
             int count = std::stoi(row_values.at(1));
 
             auto currentObj = species_vec.emplace(id, Species{id, params});
@@ -412,7 +412,7 @@ namespace species
         return errors;
     }
 
-    mutVector specIdxToMutPos(const unsigned long long specId, const constants::Constants& params)
+    mutVector specIdxToMutPos(const utils::id specId, const constants::Constants& params)
     {
         auto numMut = getNumberOfMutationsById(specId, params);
         // collect the mutated position with the respective mutation symbol
@@ -435,7 +435,7 @@ namespace species
             {
                 // for each possible positions within the length the actual mutation covers a range of ids depending on
                 // the residual mutations to follow
-                std::vector<unsigned long> cumSumRange(Lact - (numMutAct - 1));
+                std::vector<utils::id> cumSumRange(Lact - (numMutAct - 1));
                 unsigned int i = 0;
                 // initialise first value of the vector for cummulative sum (do it so complicated to not compute the
                 // whole range if not necessary)
@@ -477,11 +477,11 @@ namespace species
         return (mutPos);
     }
 
-    unsigned long long mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params)
+    utils::id mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params)
     {
         unsigned numMut = mutPos.size();
         // id for 0 mutations is 1
-        unsigned long long specId = 1;
+        utils::id specId = 1;
         if (numMut > 0)
         {
             // add the ids for the sequences with less mutations
@@ -525,7 +525,7 @@ namespace species
         return specId;
     }
 
-    unsigned getNumberOfMutationsById(const unsigned long long specId, const constants::Constants& params)
+    unsigned getNumberOfMutationsById(const utils::id specId, const constants::Constants& params)
     {
         // gives the index where the content is still lower than the given id
         auto low_it = std::lower_bound(std::begin(params.NMUT_RANGE), std::end(params.NMUT_RANGE), specId);

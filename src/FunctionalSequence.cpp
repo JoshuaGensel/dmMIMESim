@@ -208,14 +208,14 @@ unsigned int FunctionalSequence::getVectorIndex(const Mutation& m) const
     return ((m.getPosition() - 1) * (this->params.Q - 1) + m.getSymbol());
 }
 
-unsigned long long FunctionalSequence::getMatrixVectorIndex(const Mutation& a, const Mutation& b) const
+utils::id FunctionalSequence::getMatrixVectorIndex(const Mutation& a, const Mutation& b) const
 {
     // same as in R mut -1 because index starts at 0
     // for the index calculation, the positions have to be in ascending order
     // unsigned int res = (c.L*(c.L-1)/2) - ((c.L-i+1)*((c.L-i+1)-1)/2) + j - i - 1;
     // --> determine the id of the sequence with pairwise mutations and substract the ID range for the
     // sequences with no or 1 mutation
-    unsigned long long res;
+    utils::id res;
     if (a.getPosition() < b.getPosition())
         res = species::mutPosToSpecIdx({a, b}, this->params) - this->params.NMUT_RANGE.at(1) - 1;
     else if (a.getPosition() > b.getPosition())

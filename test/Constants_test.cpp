@@ -74,11 +74,10 @@ TEST_F(ConstantsTest, ComputeMaxMut)
 
 TEST_F(ConstantsTest, SetNMutRange)
 {
-    const std::vector<unsigned long long> nMutRange = params->NMUT_RANGE;
+    const std::vector<utils::id> nMutRange = params->NMUT_RANGE;
     EXPECT_EQ(nMutRange.size(), 2 * 4 + 1);
 
-    const std::vector<unsigned long long> nMutRange_true{1,       51,       1276,      20876,    251176,
-                                                         2369936, 18260636, 118145036, 655023686};
+    const std::vector<utils::id> nMutRange_true{1, 51, 1276, 20876, 251176, 2369936, 18260636, 118145036, 655023686};
     EXPECT_EQ(nMutRange, nMutRange_true);
 }
 

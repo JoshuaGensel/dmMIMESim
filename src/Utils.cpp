@@ -61,7 +61,7 @@ namespace utils
         return nMutRange;
     }
 
-    mutatedPositions specIdxToMutPos(const unsigned long specIdx, const unsigned int L, const unsigned int numSymbols,
+    mutatedPositions specIdxToMutPos(const utils::id specIdx, const unsigned int L, const unsigned int numSymbols,
                                      const std::vector<unsigned int>& nMutRange)
     {
         mutatedPositions mutPos{};
@@ -77,7 +77,7 @@ namespace utils
                 unsigned int numMutAct = numMut;
                 // get the id within the range of number of mutations (substract the ids for the sequences with less
                 // mutations)
-                unsigned long idAct = specIdx - nMutRange[numMut - 1];
+                utils::id idAct = specIdx - nMutRange[numMut - 1];
                 // determine the each mutations position seen from the mutations position before...
                 unsigned int m = 0;
                 do

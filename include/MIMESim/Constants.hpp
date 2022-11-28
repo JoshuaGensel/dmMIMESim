@@ -63,7 +63,7 @@ namespace constants
         // probability for sequencing error
         const double P_ERR = 0.001;
         // id range for 0..MAX_MUT mutations for a sequence length L: (0 -> 1, 1 -> 2..L+1, etc)
-        const std::vector<unsigned long long> NMUT_RANGE;
+        const std::vector<utils::id> NMUT_RANGE;
         const std::vector<long double> P_NMUT;
 
         // seed for random number generator
@@ -75,8 +75,7 @@ namespace constants
         // whether to use mututally exclusive epistasis drawing or not; default = true
         const bool EPIMUTEXCL = false;
 
-        std::vector<unsigned long long> setNMutRange(const unsigned int maxMut, const unsigned int L,
-                                                     const unsigned int q);
+        std::vector<utils::id> setNMutRange(const unsigned int maxMut, const unsigned int L, const unsigned int q);
         const std::vector<long double> setP_NMut(unsigned int max_mut, unsigned int l, double p_mut);
         unsigned int computeMaxMut(unsigned int m, unsigned int l, double p_mut);
 

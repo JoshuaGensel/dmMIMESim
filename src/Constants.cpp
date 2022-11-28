@@ -34,12 +34,12 @@ namespace constants
         return maxMut;
     }
 
-    std::vector<unsigned long long> Constants::setNMutRange(const unsigned int maxMut, const unsigned int L,
-                                                            const unsigned int q)
+    std::vector<utils::id> Constants::setNMutRange(const unsigned int maxMut, const unsigned int L,
+                                                   const unsigned int q)
     {
         // compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id range for
         // each number of mutations larger range for adding errors (i.e. more mutated positions)
-        std::vector<unsigned long long> nMutRange(maxMut * 2 + 1);
+        std::vector<utils::id> nMutRange(maxMut * 2 + 1);
         nMutRange[0] = 1;
         for (unsigned int i = 1; i <= maxMut * 2; ++i)
         {

@@ -12,6 +12,7 @@
 #include "Constants.hpp"
 #include "Count.hpp"
 #include "Mutation.hpp"
+#include "Utils.hpp"
 
 #include <array>
 #include <map>
@@ -30,7 +31,7 @@ namespace species
     {
 
       private:
-        const unsigned long long specId;
+        const utils::id specId;
         const constants::Constants& params;
         unsigned int count;
         const unsigned int numMut;
@@ -52,9 +53,9 @@ namespace species
         mutVector specIdxToMutPos();
 
       public:
-        Species(const unsigned long long id, const constants::Constants& param);
+        Species(const utils::id id, const constants::Constants& param);
 
-        const unsigned long long getSpecId() const;
+        const utils::id getSpecId() const;
 
         const constants::Constants& getParams() const;
 
@@ -110,15 +111,15 @@ namespace species
         double getFractionUnbound();
     };
 
-    using species_map = std::unordered_map<unsigned long long, Species>;
+    using species_map = std::unordered_map<utils::id, Species>;
 
     species_map drawSpeciesIds(const constants::Constants& params);
 
-    mutVector specIdxToMutPos(const unsigned long long specId, const constants::Constants& params);
+    mutVector specIdxToMutPos(const utils::id specId, const constants::Constants& params);
 
-    unsigned long long mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params);
+    utils::id mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params);
 
-    unsigned getNumberOfMutationsById(const unsigned long long specId, const constants::Constants& params);
+    unsigned getNumberOfMutationsById(const utils::id specId, const constants::Constants& params);
 
     species_map readFromFile(const std::string& inputPath, utils::SampleID id, const constants::Constants& params);
 
