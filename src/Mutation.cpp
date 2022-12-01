@@ -16,12 +16,13 @@ const unsigned int Mutation::getSymbol() const
     return symbol;
 }
 
+// TODO: fix symbol comparison
 bool Mutation::operator<(const Mutation& mut) const
 {
-    return this->getPosition() < mut.getPosition();
+    return (this->getPosition() < mut.getPosition()); // && (this->getSymbol() < mut.getSymbol());
 }
 
 bool Mutation::operator==(const Mutation& mut) const
 {
-    return this->getPosition() == mut.getPosition();
+    return (this->getPosition() == mut.getPosition()) && (this->getSymbol() == mut.getSymbol());
 }
