@@ -242,6 +242,7 @@ namespace species
         }
     }
 
+    // TODO: parallelize
     species_map drawSpeciesIds(const constants::Constants& params)
     {
         std::default_random_engine& generator = Generator::get_instance()->engine;

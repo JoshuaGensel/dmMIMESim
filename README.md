@@ -162,3 +162,12 @@ results_directory2
 * 6 = mut_bound_unbound,
 * 7 = mut_unbound_bound,
 * 8 = mut_unbound_unbound,
+
+## Tests
+
+Test should be run from within the main directory `/path/to/MIMESim`, for example:
+
+```
+cd /path/to/MIMESim
+./build/bin/all_tests
+```

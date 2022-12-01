@@ -35,6 +35,10 @@ target_include_directories(MIMESim PUBLIC ../include/MIMESim)
 target_link_libraries(MIMESim Eigen3::Eigen)
 #is linked automatically with gcc-9
 target_link_libraries(MIMESim stdc++fs)
+target_link_libraries(MIMESim
+    gtest
+)
+
 
 add_executable(MIMESim_prog
         main.cpp

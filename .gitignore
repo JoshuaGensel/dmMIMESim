@@ -11,6 +11,7 @@ callUTCodeCoverageAnalysis.sh
 *test/*
 !*test/*.cpp
 !*test/CMakeLists.txt
+!*test/data*
 *result*
 
 # Prerequisites

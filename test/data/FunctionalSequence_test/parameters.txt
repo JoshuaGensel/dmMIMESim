@@ -1,0 +1,6 @@
+kd_wt	1
+p_effect	1.0
+p_epistasis	1.0
+L	25
+q	3
+M	100

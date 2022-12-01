@@ -8,6 +8,7 @@
 #include "Constants.hpp"
 #include "Mutation.hpp"
 
+#include <gtest/gtest_prod.h>
 #include <iostream>
 #include <random>
 #include <vector>
@@ -16,8 +17,16 @@ class FunctionalSequence
 {
 
   private:
+    FRIEND_TEST(FunctionalSequenceTestPrivate, ReadKdValues);
+    FRIEND_TEST(FunctionalSequenceTestPrivate, ReadEpistasis);
+    FRIEND_TEST(FunctionalSequenceTestPrivate, GetMutationFromVectorIndex);
+    FRIEND_TEST(FunctionalSequenceTestPrivate, PairIndex);
+    FRIEND_TEST(FunctionalSequenceTestPrivate, DrawEpistasis_restricted);
+    FRIEND_TEST(FunctionalSequenceTestPrivate, DrawEpistasis_semi_restricted);
+    FRIEND_TEST(FunctionalSequenceTestPrivate, DrawEpistasis_unrestricted);
+
     // constants used for the simulation
-    const constants::Constants& params;
+    const constants::Constants params;
     // original Kd for each site
     const std::vector<double> kds;
     // original epistasis values for each position pair
