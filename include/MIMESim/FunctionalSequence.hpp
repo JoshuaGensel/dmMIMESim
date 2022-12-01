@@ -24,6 +24,8 @@ class FunctionalSequence
     const std::vector<double> epistasis;
     // The one, single instance
     static FunctionalSequence* instance;
+    // index used in getPairIndex to index epistasis values
+    const std::vector<int> pairIndex;
 
     /**
      * Draws the Kds value according to log normal distribution with a probability p_kd for each L postions and q-1
@@ -62,6 +64,12 @@ class FunctionalSequence
      */
     utils::id getMatrixVectorIndex(const Mutation& a, const Mutation& b) const;
 
+    std::vector<int> constructPairIndex() const;
+
+    int getPairIndex(const Mutation& a, const Mutation& b) const;
+
+    int getPairIndex(const int p1, const int p2, const int sym1, const int sym2) const;
+
     /**
      * computes index within vector of position and symbol
      * @param m Mutation = pair of position and symbol
@@ -69,14 +77,16 @@ class FunctionalSequence
      */
     unsigned int getVectorIndex(const Mutation& m) const;
 
+    Mutation getMutationFromVectorIndex(const int index) const;
+
     // Constructors are private, to prevent client code from creating new
     // instances of this class. The only instance shall be retrieved through the
     // create_instance(...) function.
     FunctionalSequence(const constants::Constants& params)
-        : params{params}, kds{drawKdValues()}, epistasis{drawEpistasis()} {};
+        : params{params}, kds{drawKdValues()}, epistasis{drawEpistasis()}, pairIndex{constructPairIndex()} {};
     FunctionalSequence(const std::string& inputPath)
-        : params{constants::readParameters(inputPath)}, kds{readKdValues(inputPath)}, epistasis{
-                                                                                          readEpistasis(inputPath)} {};
+        : params{constants::readParameters(inputPath)}, kds{readKdValues(inputPath)},
+          epistasis{readEpistasis(inputPath)}, pairIndex{constructPairIndex()} {};
 
     FunctionalSequence(const FunctionalSequence&) = delete;
     FunctionalSequence(FunctionalSequence&&) = delete;

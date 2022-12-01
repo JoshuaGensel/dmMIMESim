@@ -78,6 +78,12 @@ namespace constants
             std::cerr << "Not implemented!\n";
             throw std::runtime_error("L should be multiplative of chunkL=25.");
         }
+
+        if (!this->EPIMUTEXCL)
+        {
+            std::cerr << "Not implemented!\n";
+            throw std::runtime_error("epi_mut_excl should be True.");
+        }
     }
 
     const Constants& readParameters(const fs::path& outputPath)

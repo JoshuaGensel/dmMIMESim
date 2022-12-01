@@ -5,11 +5,13 @@
 #include "Constants.hpp"
 #include "FunctionalSequence.hpp"
 #include "Generator.hpp"
+#include "Mutation.hpp"
 #include "Species.hpp"
 
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 
 // Initialize static member instance
 FunctionalSequence* FunctionalSequence::instance = NULL;
@@ -116,6 +118,7 @@ std::vector<double> FunctionalSequence::drawEpistasis()
         return drawEpistasis_unrestricted();
 }
 
+// TODO: remove
 std::vector<double> FunctionalSequence::drawEpistasis_unrestricted()
 {
     std::vector<double> epistasis(this->params.PWVal);
@@ -141,36 +144,39 @@ std::vector<double> FunctionalSequence::drawEpistasis_restricted()
     std::default_random_engine& generator = Generator::get_instance()->engine;
     std::bernoulli_distribution bd(this->params.P_EPISTASIS);
     std::lognormal_distribution<double> lnd(0, 1);
+    std::uniform_int_distribution<unsigned int> symb_unif(0, (this->params.Q - 1) - 1); // [low, high]
 
-    // pre-calculate number of pairs preceeding pairs(pos_i, ...) (triangle numbers)
-    std::vector<int> n_pairs(this->params.L - 1); // (1,2), (1,3), (1,4), ..., (L-1,L)
-    std::iota(n_pairs.begin(), n_pairs.end(), 1); // 1, 2, 3, ..., L-1
-    std::reverse(n_pairs.begin(), n_pairs.end()); // L-1, L-2, ..., 1
-    int index_offset[this->params.L - 1];
-    std::partial_sum(n_pairs.begin(), n_pairs.end(), index_offset); // L-1, (L-1)+(L-2), ..., L*(L-1)/2
+    std::vector<int> sym_pos_effect;   // symbol at position have effect
+    std::vector<int> selected_effects; // single position has effect
 
-    std::vector<int> has_effect; // single position has effect
-
-    for (int i = 0; i < this->kds.size(); ++i)
+    int nSymb = this->params.Q - 1;
+    for (int i = 0; i < this->params.L; ++i)
     {
-        if (this->kds[i] != this->params.KD_WT)
+        // select only one mutation per position
+        // TODO: allow multiple? If so, add check in while loop for pos1=pos2
+        for (int j = i * nSymb; j < i * nSymb + nSymb; j++)
         {
-            has_effect.push_back(i);
+            if (this->kds[j] != this->params.KD_WT)
+            {
+                sym_pos_effect.push_back(j);
+            }
         }
+        std::shuffle(sym_pos_effect.begin(), sym_pos_effect.end(), generator);
+        selected_effects.push_back(sym_pos_effect[0]);
+        sym_pos_effect.clear();
     }
-    std::shuffle(has_effect.begin(), has_effect.end(), generator);
+    std::shuffle(selected_effects.begin(), selected_effects.end(), generator);
 
     int counter = 0;
-    while (counter < has_effect.size() - 1)
+    while (counter < selected_effects.size() - 1)
     {
         if (bd(generator))
         {
-            int pos1 = std::min(has_effect[counter], has_effect[counter + 1]);
-            int pos2 = std::max(has_effect[counter], has_effect[counter + 1]);
+            int epi_index = FunctionalSequence::getPairIndex(getMutationFromVectorIndex(selected_effects[counter]),
+                                                             getMutationFromVectorIndex(selected_effects[counter + 1]));
 
-            int pair_index = pos2 + (pos1 > 0 ? index_offset[pos1 - 1] : 0);
-            epistasis[pair_index] = lnd(generator);
-            ++counter;
+            epistasis[epi_index] = lnd(generator);
+            counter += 2; // next pair
         }
         ++counter;
     }
@@ -208,22 +214,79 @@ unsigned int FunctionalSequence::getVectorIndex(const Mutation& m) const
     return ((m.getPosition() - 1) * (this->params.Q - 1) + m.getSymbol());
 }
 
-utils::id FunctionalSequence::getMatrixVectorIndex(const Mutation& a, const Mutation& b) const
+Mutation FunctionalSequence::getMutationFromVectorIndex(const int index) const
 {
-    // same as in R mut -1 because index starts at 0
-    // for the index calculation, the positions have to be in ascending order
-    // unsigned int res = (c.L*(c.L-1)/2) - ((c.L-i+1)*((c.L-i+1)-1)/2) + j - i - 1;
-    // --> determine the id of the sequence with pairwise mutations and substract the ID range for the
-    // sequences with no or 1 mutation
-    utils::id res;
-    if (a.getPosition() < b.getPosition())
-        res = species::mutPosToSpecIdx({a, b}, this->params) - this->params.NMUT_RANGE.at(1) - 1;
-    else if (a.getPosition() > b.getPosition())
-        res = species::mutPosToSpecIdx({b, a}, this->params) - this->params.NMUT_RANGE.at(1) - 1;
-    else
-        std::cerr << "Two mutations at the same position are not possible.";
+    // all positions x symbols before (+ 1 for actual position -1 as index starts at 0) + the symbol of the actual
+    // position
+    int pos = std::floor(index / (this->params.Q - 1));
+    int sym = index % (this->params.Q - 1);
 
-    return res;
+    return Mutation(pos, sym);
+}
+
+std::vector<int> FunctionalSequence::constructPairIndex() const
+{
+    /*
+    0: (1,2)
+    1: (1,3)
+    2: (1,4)
+    3: (1,5)
+    4: (2,3)
+    5: (2,4)
+    6: (2,5)
+    7: (3,4)
+    8: (3,5)
+    9: (4,5)
+
+    (1,X)	1	->	4
+    (2,X)	2	->	3
+    (3,X)	3	->	2
+    (4,X)	4	->	1
+
+    n_pairs = 1 2 3 4
+    n_pairs = 4 3 2 1
+
+    tmp = 4 7 9 10
+    preceedingPosPairs = 0 4 7 9 10
+
+    (3,5) --> preceedingPosPairs[3-1] + (5-3-1) = preceedingPosPairs[2] + 1 = 7 + 1 = 8 (0-based index)
+    */
+
+    // pre-calculate number of pairs preceeding a pair(pos_i, ...) (triangle numbers)
+    std::vector<int> n_pairs(this->params.L - 1); // (1,2), (1,3), (1,4), ..., (L-1,L)
+    std::iota(n_pairs.begin(), n_pairs.end(), 1); // 1, 2, 3, ..., L-1
+    std::reverse(n_pairs.begin(), n_pairs.end()); // L-1, L-2, ..., 1
+    int tmp[this->params.L - 1];
+    std::partial_sum(n_pairs.begin(), n_pairs.end(), tmp); // L-1, (L-1)+(L-2), ..., L*(L-1)/2
+    std::vector<int> preceedingPosPairs(tmp, tmp + (params.L - 1));
+    preceedingPosPairs.insert(preceedingPosPairs.begin(), 0);
+
+    return preceedingPosPairs;
+}
+
+int FunctionalSequence::getPairIndex(const int p1, const int p2, const int sym1, const int sym2) const
+{
+    if (p1 >= p2)
+    {
+        std::cerr << "p1=" << p1 << ", p2=" << p2 << std::endl;
+        throw std::invalid_argument("p1 should be smaller than p2");
+    }
+
+    int nPreceedingPos1Pairs = this->pairIndex[p1 - 1]; // getPosition is 1-based
+    int nPreceedingPos2Pairs = p2 - p1 - 1;
+    int index = nPreceedingPos1Pairs + nPreceedingPos2Pairs;
+    index = index * std::pow(this->params.Q - 1, 2); // for number of mutation pairs in alphabet
+    index += (this->params.Q - 1) * sym1 + sym2;
+
+    return index;
+}
+
+int FunctionalSequence::getPairIndex(const Mutation& a, const Mutation& b) const
+{
+    Mutation m1 = std::min(a, b);
+    Mutation m2 = std::max(a, b);
+
+    return FunctionalSequence::getPairIndex(m1.getPosition(), m2.getPosition(), m1.getSymbol(), m2.getSymbol());
 }
 
 void FunctionalSequence::writeKdsToFile(const std::string& filename)
@@ -248,7 +311,7 @@ void FunctionalSequence::writeEpistasisToFile(const std::string& filename)
 
 const double& FunctionalSequence::getEpistasis(const Mutation& a, const Mutation& b) const
 {
-    return epistasis.at(FunctionalSequence::getMatrixVectorIndex(a, b));
+    return epistasis.at(FunctionalSequence::getPairIndex(a, b));
 }
 
 const std::vector<double>& FunctionalSequence::getKd() const
