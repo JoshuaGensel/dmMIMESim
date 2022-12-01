@@ -20,29 +20,35 @@
 #include <iostream>
 #include <numeric>
 #include <set>
+#include <unordered_map>
 #include <valarray>
 
 namespace species
 {
-    Species::Species(const utils::id id, const constants::Constants& param)
-        : specId{id}, params{param}, numMut{getNumberOfMutationsById()}, mutatedPositions{specIdxToMutPos()}, count{0},
-          mutCountBound{0}, mutCountUnbound{0}, errorCountBound{0}, errorCountUnbound{0}
+    Species::Species(const utils::ids ids, const constants::Constants& param)
+        : specIds{ids}, params{param}, numMuts{getNumberOfMutationsByIds()}, mutatedPositions{specIdsToMutPos()},
+          count{0}, mutCountBound{0}, mutCountUnbound{0}, errorCountBound{0}, errorCountUnbound{0}
     {
+        if (specIds.size() != params.NCHUNKS)
+        {
+            std::cerr << "specIds vector does not match params object." << std::endl;
+            throw std::runtime_error("Mismatch between specIds and params.");
+        }
     }
 
-    unsigned int Species::getNumberOfMutationsById()
+    std::vector<unsigned int> Species::getNumberOfMutationsByIds()
     {
-        return species::getNumberOfMutationsById(this->specId, this->params);
+        return species::getNumberOfMutationsByIds(this->specIds, this->params);
     }
 
-    mutVector Species::specIdxToMutPos()
+    mutVector Species::specIdsToMutPos()
     {
-        return species::specIdxToMutPos(this->specId, this->params);
+        return species::specIdsToMutPos(this->specIds, this->params);
     }
 
-    const utils::id Species::getSpecId() const
+    const utils::ids Species::getSpecIds() const
     {
-        return specId;
+        return specIds;
     }
 
     const constants::Constants& Species::getParams() const
@@ -55,9 +61,14 @@ namespace species
         return count;
     }
 
-    const unsigned int Species::getNumMut() const
+    const std::vector<unsigned int> Species::getNumMuts() const
     {
-        return numMut;
+        return numMuts;
+    }
+
+    const unsigned int Species::getNumMut_total() const
+    {
+        return std::accumulate(numMuts.begin(), numMuts.end(), 0);
     }
 
     const mutVector& Species::getMutatedPositions() const
@@ -213,14 +224,14 @@ namespace species
     {
         FunctionalSequence* effects = FunctionalSequence::get_instance();
         Species::kd = 1.0;
+
         // additive effect of epistasis (since we have the exponential of the epistasis here, it is multiplicative
         for (auto mutPos1_it = begin(Species::mutatedPositions); mutPos1_it != end(Species::mutatedPositions);
              ++mutPos1_it)
         {
             Species::kd *= effects->getKd(*mutPos1_it);
-            for (auto mutPos2_it = mutPos1_it + 1;
-                 mutPos1_it != Species::mutatedPositions.end() && mutPos2_it != Species::mutatedPositions.end();
-                 ++mutPos2_it)
+
+            for (auto mutPos2_it = mutPos1_it + 1; mutPos2_it != end(Species::mutatedPositions); ++mutPos2_it)
             {
                 // compute the kd for a species by multiplying all single kds of the mutations and add the pairwise
                 // epistasis factor totalEpistasisPerPos[*mutPos1_it-1] *= effects->getEpistasis(*mutPos1_it-1,
@@ -238,17 +249,19 @@ namespace species
         // contains the map with all sequence species
         species::species_map species_map;
 
-        // Break down the drawing of all possible (allowed) species ids into 2 smaller ones:
+        // Break down the drawing of all possible (allowed) species ids into 3 smaller ones:
         // first draw a the number of mutations from 0 to MAX_MUT, with the given probabilities...
         std::discrete_distribution<> d(begin(params.P_NMUT), end(params.P_NMUT));
-        // then draw uniformly the id from the id range for this particular number of mutations
-        std::vector<std::uniform_int_distribution<utils::id>> unif(params.MAX_MUT + 1);
+        // then draw uniformly the chunk indices where the mutations reside in
+        std::uniform_int_distribution<unsigned int> chunk_unif(0, params.NCHUNKS - 1);
+        // then draw uniformly, per chunk, the id from the id range for the particular number of mutations
+        std::vector<std::uniform_int_distribution<utils::id>> id_unif(params.MAX_MUT + 1);
 
-        unif[0] = std::uniform_int_distribution<utils::id>(1, 1);
+        id_unif[0] = std::uniform_int_distribution<utils::id>(1, 1);
         // create distributions for all numbers of mutations beforehand
         for (int numMut = 1; numMut <= params.MAX_MUT; ++numMut)
         {
-            unif[numMut] =
+            id_unif[numMut] =
                 std::uniform_int_distribution<utils::id>(params.NMUT_RANGE[numMut - 1] + 1, params.NMUT_RANGE[numMut]);
         }
         // count the given species
@@ -257,14 +270,41 @@ namespace species
             // draw number of mutations
             const int numMut = d(generator);
             // if no mutations, the id is always 1
-            utils::id id = 1;
+            utils::ids ids(params.NCHUNKS, 1);
+
             if (numMut > 0)
             {
-                id = unif[numMut](generator);
+                // draw the chunk indices that contain mutations
+                std::unordered_map<int, int> numMutPerChunkId;
+                std::unordered_map<int, int>::iterator it;
+
+                for (int i = 0; i < numMut; ++i)
+                {
+                    // check if key `c` exists in the map or not
+                    unsigned int chunk_index = chunk_unif(generator);
+
+                    it = numMutPerChunkId.find(chunk_index);
+                    // key already present on the map
+                    if (it != numMutPerChunkId.end())
+                    {
+                        it->second++; // increment map's value for key `chunk_index`
+                    }
+                    // key not found
+                    else
+                    {
+                        numMutPerChunkId.insert(std::make_pair(chunk_index, 1));
+                    }
+                }
+
+                // draw the chunk ids
+                for (it = numMutPerChunkId.begin(); it != numMutPerChunkId.end(); it++)
+                {
+                    ids[it->first] = id_unif[it->second](generator);
+                }
             }
             // create new object if not yet present (return value gives iterator and flag if insertion happened)
             // the id is the key for the map, and also the parameter for the constructor for the species class
-            auto currentEntry = species_map.emplace(id, species::Species(id, params));
+            auto currentEntry = species_map.emplace(ids, species::Species(ids, params));
             if (currentEntry.second)
             {
                 currentEntry.first->second.computeSpeciesKd();
@@ -286,14 +326,18 @@ namespace species
         std::getline(infile, line); // header row
         while (std::getline(infile, line))
         {
-            // per row: SpeciesID \t #instances
+            // per row: SpeciesID_chunk0 \t SpeciesID_chunk1 \t ... \t SpeciesID_chunkN-1 \t #instances
             std::vector<std::string> row_values;
             utils::split_string(line, '\t', row_values);
 
-            utils::id id = std::stoull(row_values.at(0));
-            int count = std::stoi(row_values.at(1));
+            utils::ids ids(params.NCHUNKS, 1);
+            for (int i = 0; i < params.NCHUNKS; ++i)
+            {
+                ids[i] = std::stoull(row_values.at(i));
+            }
+            int count = std::stoi(row_values.at(params.NCHUNKS)); // second-to-last-entry in row
 
-            auto currentObj = species_vec.emplace(id, Species{id, params});
+            auto currentObj = species_vec.emplace(ids, Species{ids, params});
             while (count > 0)
             {
                 currentObj.first->second.incrementCount();
@@ -314,15 +358,23 @@ namespace species
         return count;
     }
 
-    void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool)
+    void writeSpeciesToFile(const std::string& out_file, unsigned int& n_chunks, species_map& spec_map,
+                            std::valarray<unsigned int>& S_pool)
     {
-        const std::string header = "speciesID\tcount\tKd\n";
+
+        std::string header = "";
+        for (int i = 0; i < n_chunks; ++i)
+        {
+            header += "speciesID_" + std::to_string(i) + "\t";
+        }
+        header += "count\tKd\n";
         std::ofstream outfile(out_file);
 
         if (outfile.good())
         {
             outfile << header;
 
+            // TODO: how to work with S_pools now?
             int specIdx = 0;
             for (auto it = spec_map.begin(); it != spec_map.end(); ++it)
             {
@@ -330,8 +382,9 @@ namespace species
                 // only include non-zero occurences
                 if (S_pool[specIdx] > 0)
                 {
-                    // print SpeciesID
-                    outfile << it->first;
+                    // print SpeciesID chunks
+                    for (utils::id id : it->first)
+                        outfile << std::to_string(id) << '\t';
                     // print number of sequences in pool
                     outfile << '\t' << S_pool[specIdx];
                     // print species Kd
@@ -353,6 +406,7 @@ namespace species
             for (auto it = spec_map.begin(); it != spec_map.end(); ++it)
             {
                 // only include non-zero occurences
+                // TODO: how to deal with S_pool now?
                 while (S_pool[specIdx] > 0)
                 {
                     // print sequence string
@@ -412,17 +466,16 @@ namespace species
         return errors;
     }
 
-    mutVector specIdxToMutPos(const utils::id specId, const constants::Constants& params)
+    mutVector specIdToMutPos(const utils::id specId, const constants::Constants& params, unsigned int offset)
     {
-        auto numMut = getNumberOfMutationsById(specId, params);
-        // collect the mutated position with the respective mutation symbol
+        unsigned int numMut = getNumberOfMutationsById(specId, params);
         mutVector mutPos;
         mutPos.reserve(numMut);
 
         // check if Id is valid
         if (specId <= params.NMUT_RANGE.back() && numMut > 0)
         {
-            unsigned int Lact = params.L;
+            unsigned int Lact = params.chunkL;
             unsigned int numMutAct = numMut;
             auto mSymbols = params.Q - 1;
 
@@ -433,35 +486,36 @@ namespace species
             // determine each mutations position seen from the mutations position before...
             for (unsigned int m = 0; m < numMut; ++m)
             {
-                // for each possible positions within the length the actual mutation covers a range of ids depending on
-                // the residual mutations to follow
+                // for each possible positions within the length the actual mutation covers a range of ids
+                // depending on the residual mutations to follow
                 std::vector<utils::id> cumSumRange(Lact - (numMutAct - 1));
-                unsigned int i = 0;
-                // initialise first value of the vector for cummulative sum (do it so complicated to not compute the
-                // whole range if not necessary)
+                unsigned int j = 0;
+                // initialise first value of the vector for cummulative sum (do it so complicated to not compute
+                // the whole range if not necessary)
                 cumSumRange[0] = std::roundl(utils::nChoosek(Lact - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
                 // find the id within the ranges and get the index (=position)
-                while (idAct > cumSumRange[i] && i < Lact - (numMutAct - 1))
+                while (idAct > cumSumRange[j] && j < Lact - (numMutAct - 1))
                 {
-                    ++i;
-                    cumSumRange[i] =
-                        std::roundl(utils::nChoosek(Lact - i - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
-                    if (i > 0)
+                    ++j;
+                    cumSumRange[j] =
+                        std::roundl(utils::nChoosek(Lact - j - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
+                    if (j > 0)
                     {
-                        cumSumRange[i] += cumSumRange[i - 1];
+                        cumSumRange[j] += cumSumRange[j - 1];
                     }
                 }
 
-                //  the symbol of a posisition  is given for (q-1) ^ numMut-1 times (e.g. with three mutations and 2
-                //  symbols 2 ^2 times) : AAA, AAB, ABA, ABB
+                //  the symbol of a posisition  is given for (q-1) ^ numMut-1 times (e.g. with three mutations
+                //  and 2 symbols 2 ^2 times) : AAA, AAB, ABA, ABB
                 int symbolCombiPerPos = std::pow(mSymbols, numMutAct - 1);
                 // find symbol
                 unsigned mut = (int)std::floor((idAct - 1) / symbolCombiPerPos) % mSymbols;
 
-                unsigned int pos = i + 1;
-                unsigned int prePos = mutPos.begin() == mutPos.end() ? 0 : mutPos.rbegin()->getPosition();
+                unsigned int pos = j + 1;
+                unsigned int prePos = mutPos.begin() == mutPos.end() ? offset : mutPos.rbegin()->getPosition();
 
-                // arguments: the two pair_constructor parameter pos and mut, adding the last cummulative position
+                // arguments: the two pair_constructor parameter pos and mut, adding the last cummulative
+                // position
                 //  (= position seend frim the beginning of the sequence)
                 mutPos.emplace_back(pos + prePos, mut);
 
@@ -469,15 +523,31 @@ namespace species
                 Lact = Lact - pos;
                 // the redsiudal number of mutations after the actual mutation
                 --numMutAct;
-                // the id within the residual length (-1 because the indices start at 0 and another -1 because we
-                // substract the ids of the preceeding mutations range
-                idAct = idAct - (pos == 1 ? 0 : cumSumRange[i - 1]); // hier stimmt was nicht
+                // the id within the residual length (-1 because the indices start at 0 and another -1 because
+                // we substract the ids of the preceeding mutations range
+                idAct = idAct - (pos == 1 ? 0 : cumSumRange[j - 1]); // hier stimmt was nicht
             }
         }
-        return (mutPos);
+
+        return mutPos;
     }
 
-    utils::id mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params)
+    mutVector specIdsToMutPos(const utils::ids specIds, const constants::Constants& params)
+    {
+        // collect the mutated position with the respective mutation symbol
+        mutVector mutPos;
+        for (int i = 0; i < params.NCHUNKS; i++)
+        {
+            int offset = i * params.chunkL;
+            mutVector mutPos_chunk = specIdToMutPos(specIds[i], params, offset);
+            mutPos.reserve(mutPos.size() + mutPos_chunk.size());
+            mutPos.insert(mutPos.end(), mutPos_chunk.begin(), mutPos_chunk.end());
+        }
+
+        return mutPos;
+    }
+
+    utils::id mutPosToSpecId(const mutVector& mutPos, const constants::Constants& params)
     {
         unsigned numMut = mutPos.size();
         // id for 0 mutations is 1
@@ -495,7 +565,7 @@ namespace species
                                              return Mutation(x.getPosition() - y.getPosition(), x.getSymbol());
                                          });
             }
-            unsigned Lact = params.L;
+            unsigned Lact = params.chunkL;
             unsigned numMutAct = numMut;
 
             // Notiz an mich selbst: enforcing const elements in range iteration (C++17)
@@ -525,6 +595,27 @@ namespace species
         return specId;
     }
 
+    utils::ids mutPosToSpecIds(const mutVector& mutPos, const constants::Constants& params)
+    {
+        // collect the mutated position with the respective mutation symbol
+        utils::ids specIds(params.NCHUNKS, 1);
+        mutVector mutPos_new = mutPos;
+
+        for (int i = 0; i < params.NCHUNKS; ++i)
+        {
+            mutVector mutPos_chunk;
+
+            int posMax = (i + 1) * params.chunkL;
+            while ((mutPos_new.size() > 0) && (mutPos_new[0].getPosition() < posMax))
+            {
+                mutPos_chunk.emplace_back(mutPos_new[0]);
+                mutPos_new.erase(mutPos_new.begin());
+            }
+            specIds[i] = mutPosToSpecId(mutPos_chunk, params);
+        }
+        return specIds;
+    }
+
     unsigned getNumberOfMutationsById(const utils::id specId, const constants::Constants& params)
     {
         // gives the index where the content is still lower than the given id
@@ -540,6 +631,17 @@ namespace species
             throw std::out_of_range("specId is out of range.");
         }
         return (low_it - std::begin(params.NMUT_RANGE));
+    }
+
+    std::vector<unsigned int> getNumberOfMutationsByIds(const utils::ids specIds, const constants::Constants& params)
+    {
+        std::vector<unsigned int> numMuts(params.NCHUNKS, 0);
+
+        for (int i = 0; i < params.NCHUNKS; i++)
+        {
+            numMuts[i] = getNumberOfMutationsById(specIds[i], params);
+        }
+        return numMuts;
     }
 
     void countErrors(std::vector<std::set<Mutation>> errors, species_map& species_vec,
@@ -729,11 +831,11 @@ namespace species
             assert((done_counter < total) && "This should not happen if iterator loop is well-defined");
 
             mutVector combined = combineMutations(it1->second.getMutatedPositions(), it2->second.getMutatedPositions());
-            unsigned int id = mutPosToSpecIdx(combined, *combined_params);
+            utils::ids ids = mutPosToSpecIds(combined, *combined_params);
 
             // create new object if not yet present (return value gives iterator and flag if insertion happened)
             // the id is the key for the map, and also the parameter for the constructor for the species class
-            auto currentEntry = species_map.try_emplace(id, id, *combined_params);
+            auto currentEntry = species_map.try_emplace(ids, ids, *combined_params);
             if (currentEntry.second)
                 currentEntry.first->second.computeSpeciesKd();
             currentEntry.first->second.incrementCount();

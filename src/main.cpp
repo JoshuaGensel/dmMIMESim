@@ -162,7 +162,7 @@ splitErrorPerPool(std::vector<std::set<Mutation>>& errors, std::valarray<unsigne
 }
 
 void writeToFile(fs::path workPath, count::counter_collection& counter, species::species_map& species_vec,
-                 std::vector<std::set<Mutation>>& errors, std::valarray<unsigned int>& S_bound,
+                 unsigned int nchunks, std::vector<std::set<Mutation>>& errors, std::valarray<unsigned int>& S_bound,
                  std::valarray<unsigned int>& S_unbound, double B, utils::SampleID boundID, utils::SampleID unboundID)
 {
     counter.counter_bound_1d.write_to_file(workPath / "1d" / (utils::SampleIDStr(boundID) + ".txt"));
@@ -170,8 +170,9 @@ void writeToFile(fs::path workPath, count::counter_collection& counter, species:
     counter.counter_bound_2d.write_to_file(workPath / "2d" / (utils::SampleIDStr(boundID) + ".txt"));
     counter.counter_unbound_2d.write_to_file(workPath / "2d" / (utils::SampleIDStr(unboundID) + ".txt"));
 
-    species::writeSpeciesToFile(workPath / "species" / (utils::SampleIDStr(boundID) + ".txt"), species_vec, S_bound);
-    species::writeSpeciesToFile(workPath / "species" / (utils::SampleIDStr(unboundID) + ".txt"), species_vec,
+    species::writeSpeciesToFile(workPath / "species" / (utils::SampleIDStr(boundID) + ".txt"), nchunks, species_vec,
+                                S_bound);
+    species::writeSpeciesToFile(workPath / "species" / (utils::SampleIDStr(unboundID) + ".txt"), nchunks, species_vec,
                                 S_unbound);
 
     auto splittedErrors = splitErrorPerPool(errors, S_bound);
@@ -325,7 +326,9 @@ int main(int argc, const char* argv[])
         start = std::chrono::high_resolution_clock::now();
         // The "control expereriment / wild type library" contains only wildtype sequences
         species::species_map wtSpecies_vec;
-        auto currentObj = wtSpecies_vec.emplace(std::make_pair<utils::id, species::Species>(1, {1, cons}));
+        utils::ids wtIds(cons.NCHUNKS, 1);
+        auto currentObj =
+            wtSpecies_vec.emplace(std::make_pair<utils::ids, species::Species>(std::move(wtIds), {wtIds, cons}));
         currentObj.first->second.setCount(cons.M);
         currentObj.first->second.computeSpeciesKd();
         end = std::chrono::high_resolution_clock::now();
@@ -348,9 +351,9 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        writeToFile(workPath, counters, species_vec, errors_lib1, S_bound, S_unbound, B, utils::SampleID::mut_bound,
-                    utils::SampleID::mut_unbound);
-        writeToFile(workPath, counters_wt, wtSpecies_vec, errors_lib2, wtS_bound, wtS_unbound, wtB,
+        writeToFile(workPath, counters, species_vec, cons.NCHUNKS, errors_lib1, S_bound, S_unbound, B,
+                    utils::SampleID::mut_bound, utils::SampleID::mut_unbound);
+        writeToFile(workPath, counters_wt, wtSpecies_vec, cons.NCHUNKS, errors_lib2, wtS_bound, wtS_unbound, wtB,
                     utils::SampleID::wt_bound, utils::SampleID::wt_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
@@ -386,10 +389,11 @@ int main(int argc, const char* argv[])
 
         std::cout << "****** Write output to file *******" << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        writeToFile(workPath, counters_bound, species_vec_b, errors_lib1, S_bound_bound, S_bound_unbound, B_bound,
-                    utils::SampleID::mut_bound_bound, utils::SampleID::mut_bound_unbound);
-        writeToFile(workPath, counters_unbound, species_vec_u, errors_lib2, S_unbound_bound, S_unbound_unbound,
-                    B_unbound, utils::SampleID::mut_unbound_bound, utils::SampleID::mut_unbound_unbound);
+        writeToFile(workPath, counters_bound, species_vec_b, cons.NCHUNKS, errors_lib1, S_bound_bound, S_bound_unbound,
+                    B_bound, utils::SampleID::mut_bound_bound, utils::SampleID::mut_bound_unbound);
+        writeToFile(workPath, counters_unbound, species_vec_u, cons.NCHUNKS, errors_lib2, S_unbound_bound,
+                    S_unbound_unbound, B_unbound, utils::SampleID::mut_unbound_bound,
+                    utils::SampleID::mut_unbound_unbound);
         end = std::chrono::high_resolution_clock::now();
         diff = end - start;
         std::cout << "Duration: " << diff.count() << " s\n";
@@ -407,6 +411,8 @@ int main(int argc, const char* argv[])
     std::cout << "Duration: " << diff.count() << " s\n";
     start = std::chrono::high_resolution_clock::now();
     // write pairwise effects
+
+    // TODO: move to function
     std::cout << "Write pairwise effects" << std::endl;
     std::ofstream outfile(workPath / "pairwise_kds.txt");
     if (outfile.good())

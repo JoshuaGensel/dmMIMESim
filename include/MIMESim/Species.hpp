@@ -19,7 +19,6 @@
 #include <random>
 #include <set>
 #include <stdio.h>
-#include <unordered_map>
 #include <vector>
 
 namespace species
@@ -31,10 +30,10 @@ namespace species
     {
 
       private:
-        const utils::id specId;
+        const utils::ids specIds;
         const constants::Constants& params;
         unsigned int count;
-        const unsigned int numMut;
+        const std::vector<unsigned int> numMuts;
         // mutatated positions need to be in ascending order
         const mutVector mutatedPositions;
         // KD of the the given sequence, adding all single Kds of the mutations and the epistatic effects for pairs
@@ -48,20 +47,22 @@ namespace species
         int errorCountBound;
         int errorCountUnbound;
 
-        unsigned int getNumberOfMutationsById();
+        std::vector<unsigned int> getNumberOfMutationsByIds();
 
-        mutVector specIdxToMutPos();
+        mutVector specIdsToMutPos();
 
       public:
-        Species(const utils::id id, const constants::Constants& param);
+        Species(const utils::ids ids, const constants::Constants& param);
 
-        const utils::id getSpecId() const;
+        const utils::ids getSpecIds() const;
 
         const constants::Constants& getParams() const;
 
         unsigned int getCount() const;
 
-        const unsigned int getNumMut() const;
+        const std::vector<unsigned int> getNumMuts() const;
+
+        const unsigned int getNumMut_total() const;
 
         const mutVector& getMutatedPositions() const;
 
@@ -111,15 +112,21 @@ namespace species
         double getFractionUnbound();
     };
 
-    using species_map = std::unordered_map<utils::id, Species>;
+    using species_map = std::map<const utils::ids, Species>;
 
     species_map drawSpeciesIds(const constants::Constants& params);
 
-    mutVector specIdxToMutPos(const utils::id specId, const constants::Constants& params);
+    mutVector specIdToMutPos(const utils::id specId, const constants::Constants& params, unsigned int offset = 0);
 
-    utils::id mutPosToSpecIdx(const mutVector& mutPos, const constants::Constants& params);
+    mutVector specIdsToMutPos(const utils::ids specIds, const constants::Constants& params);
+
+    utils::id mutPosToSpecId(const mutVector& mutPos, const constants::Constants& params);
+
+    utils::ids mutPosToSpecIds(const mutVector& mutPos, const constants::Constants& params);
 
     unsigned getNumberOfMutationsById(const utils::id specId, const constants::Constants& params);
+
+    std::vector<unsigned int> getNumberOfMutationsByIds(const utils::ids specId, const constants::Constants& params);
 
     species_map readFromFile(const std::string& inputPath, utils::SampleID id, const constants::Constants& params);
 
@@ -132,7 +139,8 @@ namespace species
      * @param S_pool counts per drawn Species IDs present in pool of interest
      * @param header optional argument. If it is not given, it is assumed that we have species and #occurences
      */
-    void writeSpeciesToFile(const std::string& out_file, species_map& spec_map, std::valarray<unsigned int>& S_pool);
+    void writeSpeciesToFile(const std::string& out_file, unsigned int& n_chunks, species_map& spec_map,
+                            std::valarray<unsigned int>& S_pool);
 
     void writeSequencesToFile(const std::string& out_file, species_map& spec_map,
                               std::vector<std::set<Mutation>> errors, std::valarray<unsigned int> S_pool);

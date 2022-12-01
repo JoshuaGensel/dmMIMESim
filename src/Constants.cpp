@@ -71,6 +71,15 @@ namespace constants
         return p_nmut;
     };
 
+    void Constants::checkValidity()
+    {
+        if (this->L % this->chunkL)
+        {
+            std::cerr << "Not implemented!\n";
+            throw std::runtime_error("L should be multiplative of chunkL=25.");
+        }
+    }
+
     const Constants& readParameters(const fs::path& outputPath)
     {
 
@@ -106,7 +115,7 @@ namespace constants
 
             int max_mut = -1;
             double B_tot = 2.0;
-            bool epiMutExcl = false;
+            bool epiMutExcl = true;
 
             // if the output directory contains the parameter file, read it
             if (fs::exists(paraFile) && fs::is_regular_file(paraFile))
@@ -239,4 +248,5 @@ namespace constants
     {
         writeParameters("", params);
     }
+
 }

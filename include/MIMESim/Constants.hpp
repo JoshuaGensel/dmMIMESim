@@ -46,12 +46,15 @@ namespace constants
 
         /**** Constants regarding species sampling *******/
         // maximal number of mutations in one sequence
-        // static constexpr unsigned int MAX_MUT = 3;
-        const unsigned int MAX_MUT;
+        const unsigned int MAX_MUT = -1;
         // number of total sequences
         const unsigned int M = 12 * pow(10, 6);
         // sequence length
         const unsigned int L = 50;
+        // sequence length of species id chunks
+        const unsigned int chunkL = 25;
+        // number of chunks
+        const unsigned int NCHUNKS = 2;
         // number of single values with al symbols
         const unsigned int SVal;
         // number of pairwise values with all combinations of symbols
@@ -73,39 +76,55 @@ namespace constants
         const double BTOT = 2.0;
 
         // whether to use mututally exclusive epistasis drawing or not; default = true
-        const bool EPIMUTEXCL = false;
+        const bool EPIMUTEXCL = true;
 
         std::vector<utils::id> setNMutRange(const unsigned int maxMut, const unsigned int L, const unsigned int q);
         const std::vector<long double> setP_NMut(unsigned int max_mut, unsigned int l, double p_mut);
         unsigned int computeMaxMut(unsigned int m, unsigned int l, double p_mut);
 
+        /**
+         * Check for breaking param settings, dirty fix for not-implemented edge-cases.
+         */
+        void checkValidity();
+
         Constants(unsigned int length, unsigned int q, unsigned int m, double p_mut, double p_error, double p_effect,
                   double p_epistasis, unsigned int seed, double B_tot, bool epi_mut_excl, fs::path outputDir)
-            : L{length}, M{m}, SVal{length * (q - 1)}, PWVal{uint((length * (length - 1) / 2) * std::pow(q - 1, 2))},
-              Q{q}, P_MUT{p_mut}, P_ERR{p_error}, P_EFFECT{p_effect}, P_EPISTASIS{p_epistasis}, MAX_MUT{computeMaxMut(
-                                                                                                    m, length, p_mut)},
-              NMUT_RANGE{setNMutRange(computeMaxMut(m, length, p_mut), length, q)},
+            : L{length}, NCHUNKS{(length + chunkL - 1) / chunkL}, M{m}, SVal{length * (q - 1)},
+              PWVal{uint((length * (length - 1) / 2) * std::pow(q - 1, 2))}, Q{q}, P_MUT{p_mut}, P_ERR{p_error},
+              P_EFFECT{p_effect}, P_EPISTASIS{p_epistasis}, MAX_MUT{computeMaxMut(m, length, p_mut)},
+              NMUT_RANGE{setNMutRange(computeMaxMut(m, length, p_mut), chunkL, q)},
               P_NMUT{setP_NMut(computeMaxMut(m, length, p_mut), length, p_mut)}, SEED{seed}, BTOT{B_tot},
-              EPIMUTEXCL{epi_mut_excl}, OUTPUT_DIR{outputDir} {};
+              EPIMUTEXCL{epi_mut_excl}, OUTPUT_DIR{outputDir}
+        {
+            checkValidity();
+        };
 
         // constructor for fixed MAX_MUT
         Constants(unsigned int length, unsigned int q, unsigned int m, double p_mut, double p_error, double p_effect,
                   double p_epistasis, unsigned int seed, double B_tot, unsigned int max_mut, bool epi_mut_excl,
                   fs::path outputDir)
-            : L{length}, M{m}, SVal{length * (q - 1)}, PWVal{uint((length * (length - 1) / 2) * std::pow(q - 1, 2))},
-              Q{q}, P_MUT{p_mut}, P_ERR{p_error}, P_EFFECT{p_effect}, P_EPISTASIS{p_epistasis}, MAX_MUT{max_mut},
-              NMUT_RANGE{setNMutRange(max_mut, length, q)}, P_NMUT{setP_NMut(max_mut, length, p_mut)}, SEED{seed},
-              BTOT{B_tot}, EPIMUTEXCL{epi_mut_excl}, OUTPUT_DIR{outputDir} {};
+            : L{length}, NCHUNKS{(length + chunkL - 1) / chunkL}, M{m}, SVal{length * (q - 1)},
+              PWVal{uint((length * (length - 1) / 2) * std::pow(q - 1, 2))}, Q{q}, P_MUT{p_mut}, P_ERR{p_error},
+              P_EFFECT{p_effect}, P_EPISTASIS{p_epistasis}, MAX_MUT{max_mut},
+              NMUT_RANGE{setNMutRange(max_mut, chunkL, q)}, P_NMUT{setP_NMut(max_mut, length, p_mut)}, SEED{seed},
+              BTOT{B_tot}, EPIMUTEXCL{epi_mut_excl}, OUTPUT_DIR{outputDir}
+        {
+            checkValidity();
+        };
 
         // Constructor for combining species sets; most params are the same as in params2, except MAX_MUT related params
         Constants(Constants const& params1, Constants const& params2)
-            : L{params2.L}, Q{params2.Q}, M{params2.M}, MAX_MUT{params1.MAX_MUT + params2.MAX_MUT},
+            : L{params2.L}, NCHUNKS{params2.NCHUNKS}, Q{params2.Q}, M{params2.M}, MAX_MUT{params1.MAX_MUT +
+                                                                                          params2.MAX_MUT},
               NMUT_RANGE{setNMutRange(std::max(params1.MAX_MUT, params2.MAX_MUT) +
                                           std::round(params2.P_ERR / params2.P_MUT * params2.MAX_MUT),
-                                      params2.L, params2.Q)},
+                                      params2.chunkL, params2.Q)},
               SVal{params2.SVal}, PWVal{params2.PWVal}, P_MUT{params2.P_MUT}, P_ERR{params2.P_ERR},
               P_EFFECT{params2.P_EFFECT}, P_EPISTASIS{params2.P_EPISTASIS}, P_NMUT{params2.P_NMUT}, SEED{params2.SEED},
-              BTOT{params2.BTOT}, EPIMUTEXCL{params2.EPIMUTEXCL}, OUTPUT_DIR{params2.OUTPUT_DIR} {};
+              BTOT{params2.BTOT}, EPIMUTEXCL{params2.EPIMUTEXCL}, OUTPUT_DIR{params2.OUTPUT_DIR}
+        {
+            checkValidity();
+        };
     };
 
     /**

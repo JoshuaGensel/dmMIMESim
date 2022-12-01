@@ -94,7 +94,7 @@ std::vector<double> FunctionalSequence::readKdValues(const std::string& inputPat
 bool FunctionalSequence::checkValidReadValues()
 {
 
-    if (this->kds.size() != this->params.L)
+    if (this->kds.size() != this->params.SVal)
     {
         std::cerr << "Provided single_kds.txt does not match experiment params (sequence length L)." << std::endl;
         return false;

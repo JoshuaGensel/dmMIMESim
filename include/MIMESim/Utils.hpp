@@ -19,6 +19,7 @@ namespace utils
 {
     typedef std::map<unsigned int, unsigned int> mutatedPositions;
     typedef unsigned long long id;
+    typedef std::vector<id> ids; // species chunk ids
 
     long double nChoosek(const unsigned n, const unsigned k);
 
