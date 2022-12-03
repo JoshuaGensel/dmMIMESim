@@ -29,12 +29,12 @@ class FunctionalSequence
     const constants::Constants params;
     // original Kd for each site
     const std::vector<double> kds;
+    // index used in getPairIndex to index epistasis values
+    const std::vector<int> pairIndex;
     // original epistasis values for each position pair
     const std::vector<double> epistasis;
     // The one, single instance
     static FunctionalSequence* instance;
-    // index used in getPairIndex to index epistasis values
-    const std::vector<int> pairIndex;
 
     /**
      * Draws the Kds value according to log normal distribution with a probability p_kd for each L postions and q-1
