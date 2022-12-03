@@ -216,9 +216,7 @@ unsigned int FunctionalSequence::getVectorIndex(const Mutation& m) const
 
 Mutation FunctionalSequence::getMutationFromVectorIndex(const int index) const
 {
-    // all positions x symbols before (+ 1 for actual position -1 as index starts at 0) + the symbol of the actual
-    // position
-    int pos = std::floor(index / (this->params.Q - 1));
+    int pos = std::floor(index / (this->params.Q - 1)) + 1; // +1 because pos is 1-indexed
     int sym = index % (this->params.Q - 1);
 
     return Mutation(pos, sym);

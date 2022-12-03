@@ -65,14 +65,6 @@ class FunctionalSequence
      */
     std::vector<double> readEpistasis(const std::string& inputPath);
 
-    /*
-     * computes the index within the vector representation of a symmetric matrix
-     * @param a Mutation 1
-     * @param b Mutation 2
-     * @return the Index of the Vector of the the pairwise values in the matrix (upper or lower triangle)
-     */
-    utils::id getMatrixVectorIndex(const Mutation& a, const Mutation& b) const;
-
     std::vector<int> constructPairIndex() const;
 
     int getPairIndex(const Mutation& a, const Mutation& b) const;

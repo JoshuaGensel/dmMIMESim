@@ -375,7 +375,6 @@ namespace species
         {
             outfile << header;
 
-            // TODO: how to work with S_pools now?
             int specIdx = 0;
             for (auto it = spec_map.begin(); it != spec_map.end(); ++it)
             {
@@ -407,7 +406,6 @@ namespace species
             for (auto it = spec_map.begin(); it != spec_map.end(); ++it)
             {
                 // only include non-zero occurences
-                // TODO: how to deal with S_pool now?
                 while (S_pool[specIdx] > 0)
                 {
                     // print sequence string
@@ -569,7 +567,6 @@ namespace species
             unsigned Lact = params.chunkL;
             unsigned numMutAct = numMut;
 
-            // Notiz an mich selbst: enforcing const elements in range iteration (C++17)
             for (auto const& mutation : std::as_const(mutPos_new))
             {
                 if (numMutAct == 1)

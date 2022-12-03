@@ -19,7 +19,6 @@ namespace constants
     /*
      * determination of the maximal number of mutations (Expected number of occurrence >5), must be minimum 3
      */
-    // TODO: Is it correct to enforce the minimum of 3?
     unsigned int Constants::computeMaxMut(unsigned int m, unsigned int l, double p_mut)
     {
         unsigned int maxMut = 2;
