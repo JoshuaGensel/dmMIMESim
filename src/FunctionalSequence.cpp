@@ -241,8 +241,8 @@ std::vector<int> FunctionalSequence::constructPairIndex() const
     (3,X)	3	->	2
     (4,X)	4	->	1
 
-    n_pairs = 1 2 3 4
-    n_pairs = 4 3 2 1
+    i_pairs = 1 2 3 4
+    i_pairs = 4 3 2 1
 
     tmp = 4 7 9 10
     preceedingPosPairs = 0 4 7 9 10
@@ -251,11 +251,11 @@ std::vector<int> FunctionalSequence::constructPairIndex() const
     */
 
     // pre-calculate number of pairs preceeding a pair(pos_i, ...) (triangle numbers)
-    std::vector<int> n_pairs(this->params.L - 1); // (1,2), (1,3), (1,4), ..., (L-1,L)
-    std::iota(n_pairs.begin(), n_pairs.end(), 1); // 1, 2, 3, ..., L-1
-    std::reverse(n_pairs.begin(), n_pairs.end()); // L-1, L-2, ..., 1
+    std::vector<int> i_pairs(this->params.L - 1);
+    std::iota(i_pairs.begin(), i_pairs.end(), 1); // 1, 2, 3, ..., L-1
+    std::reverse(i_pairs.begin(), i_pairs.end()); // L-1, L-2, ..., 1
     int tmp[this->params.L - 1];
-    std::partial_sum(n_pairs.begin(), n_pairs.end(), tmp); // L-1, (L-1)+(L-2), ..., L*(L-1)/2
+    std::partial_sum(i_pairs.begin(), i_pairs.end(), tmp); // L-1, (L-1)+(L-2), ..., L*(L-1)/2
     std::vector<int> preceedingPosPairs(tmp, tmp + (params.L - 1));
     preceedingPosPairs.insert(preceedingPosPairs.begin(), 0);
 

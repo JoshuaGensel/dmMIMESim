@@ -488,19 +488,19 @@ namespace species
                 // for each possible positions within the length the actual mutation covers a range of ids
                 // depending on the residual mutations to follow
                 std::vector<utils::id> cumSumRange(Lact - (numMutAct - 1));
-                unsigned int j = 0;
+                unsigned int i = 0;
                 // initialise first value of the vector for cummulative sum (do it so complicated to not compute
                 // the whole range if not necessary)
                 cumSumRange[0] = std::roundl(utils::nChoosek(Lact - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
                 // find the id within the ranges and get the index (=position)
-                while (idAct > cumSumRange[j] && j < Lact - (numMutAct - 1))
+                while (idAct > cumSumRange[i] && i < Lact - (numMutAct - 1))
                 {
-                    ++j;
-                    cumSumRange[j] =
-                        std::roundl(utils::nChoosek(Lact - j - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
-                    if (j > 0)
+                    ++i;
+                    cumSumRange[i] =
+                        std::roundl(utils::nChoosek(Lact - i - 1, numMutAct - 1) * std::pow(mSymbols, numMut));
+                    if (i > 0)
                     {
-                        cumSumRange[j] += cumSumRange[j - 1];
+                        cumSumRange[i] += cumSumRange[i - 1];
                     }
                 }
 
@@ -510,7 +510,7 @@ namespace species
                 // find symbol
                 unsigned mut = (int)std::floor((idAct - 1) / symbolCombiPerPos) % mSymbols;
 
-                unsigned int pos = j + 1;
+                unsigned int pos = i + 1;
                 unsigned int prePos = mutPos.begin() == mutPos.end() ? offset : mutPos.rbegin()->getPosition();
 
                 // arguments: the two pair_constructor parameter pos and mut, adding the last cummulative
@@ -524,7 +524,7 @@ namespace species
                 --numMutAct;
                 // the id within the residual length (-1 because the indices start at 0 and another -1 because
                 // we substract the ids of the preceeding mutations range
-                idAct = idAct - (pos == 1 ? 0 : cumSumRange[j - 1]); // hier stimmt was nicht
+                idAct = idAct - (pos == 1 ? 0 : cumSumRange[i - 1]); // hier stimmt was nicht
             }
         }
 
