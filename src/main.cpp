@@ -196,7 +196,7 @@ int main(int argc, const char* argv[])
     // measuring realtime duration (see std::clock for cpu time)
     auto start = std::chrono::high_resolution_clock::now();
 
-    fs::path workPath("../results");
+    fs::path workPath("./results");
     fs::path prevPath("");
     bool use_prevPath = false; // perform 2nd round, read in data from 1st round
     bool draw_gt = true;       // draw ground truth randomly

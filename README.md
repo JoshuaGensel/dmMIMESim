@@ -41,7 +41,7 @@ If no parameter is given, the output will be written to the newly created direct
 ```
 /path/to/MIMESim_prog
 ```
-First round simulation. Program will create dir `../results` and write outputs and (default) params to this folder.
+First round simulation. Program will create dir `./results` and write outputs and (default) params to this folder.
 
 ### 2: working-dir
 
