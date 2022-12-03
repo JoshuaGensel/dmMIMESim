@@ -79,14 +79,14 @@ namespace constants
     {
         if (this->L % this->chunkL)
         {
-            std::cerr << "Not implemented!\n";
+            // std::cerr << "Not implemented!\n";
             throw std::runtime_error("L should be multiplative of chunkL=25.");
         }
 
-        if (!this->EPIMUTEXCL)
+        if (!((this->EPI_RESTRICT == 0) || (this->EPI_RESTRICT == 1) || (this->EPI_RESTRICT == 2)))
         {
-            std::cerr << "Not implemented!\n";
-            throw std::runtime_error("epi_mut_excl should be True.");
+            // std::cerr << "Not implemented!\n";
+            throw std::runtime_error("epi_restrict should be 0, 1 or 2.");
         }
     }
 
@@ -125,7 +125,7 @@ namespace constants
 
             int max_mut = -1;
             double B_tot = 2.0;
-            bool epiMutExcl = true;
+            unsigned epi_restrict = 0;
 
             // if the output directory contains the parameter file, read it
             if (fs::exists(paraFile) && fs::is_regular_file(paraFile))
@@ -173,11 +173,8 @@ namespace constants
                                 max_mut = std::stoi(val);
                             if (param == "B_tot")
                                 B_tot = std::stod(val);
-                            if (param == "epistasis_mut_excl")
-                            {
-                                if ((val == "true") || (val == "True"))
-                                    epiMutExcl = true;
-                            }
+                            if (param == "epi_restrict")
+                                epi_restrict = std::stoi(val);
                         }
                         infile.close();
                         std::cout << " ... successful." << std::endl;
@@ -200,15 +197,15 @@ namespace constants
             if (max_mut == -1)
             {
                 // no fixed max_mut
-                Constants* cons =
-                    new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, epiMutExcl, outputPath);
+                Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot,
+                                                epi_restrict, outputPath);
                 return *cons;
             }
             else
             {
                 // with fixed max_mut
                 Constants* cons = new Constants(L, q, M, p_mut, p_error, p_effect, p_epistasis, seed, B_tot, max_mut,
-                                                epiMutExcl, outputPath);
+                                                epi_restrict, outputPath);
                 return *cons;
             }
         }
@@ -235,13 +232,12 @@ namespace constants
 
         if ((*paraStream).good())
         {
-            std::string epistasis_mut_excl = params.EPIMUTEXCL ? "true" : "false";
             (*paraStream) << "seed\t" << params.SEED << '\n';
             (*paraStream) << "### paratemers regarding kd sampling ###\n";
             (*paraStream) << "kd_wt\t" << params.KD_WT << '\n';
             (*paraStream) << "p_effect\t" << params.P_EFFECT << '\n';
             (*paraStream) << "p_epistasis\t" << params.P_EPISTASIS << '\n';
-            (*paraStream) << "epistasis_mut_excl\t" << epistasis_mut_excl << '\n';
+            (*paraStream) << "epi_restrict\t" << params.EPI_RESTRICT << '\n';
             (*paraStream) << "### paramters regarding sequence sampling ###\n";
             (*paraStream) << "L\t" << params.L << '\n';
             (*paraStream) << "q\t" << params.Q << '\n';

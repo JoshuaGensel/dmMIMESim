@@ -89,11 +89,11 @@ std::tuple<species::species_map, species::species_map, constants::Constants> sec
     constants::Constants paramSecondBound =
         constants::Constants(paramSecond.L, paramSecond.Q, nBound, paramSecond.P_MUT, paramSecond.P_ERR,
                              paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT,
-                             paramSecond.MAX_MUT, paramSecond.EPIMUTEXCL, paramSecond.OUTPUT_DIR);
+                             paramSecond.MAX_MUT, paramSecond.EPI_RESTRICT, paramSecond.OUTPUT_DIR);
     constants::Constants paramSecondUnbound =
         constants::Constants(paramSecond.L, paramSecond.Q, nUnbound, paramSecond.P_MUT, paramSecond.P_ERR,
                              paramSecond.P_EFFECT, paramSecond.P_EPISTASIS, paramSecond.SEED, paramSecond.BTOT,
-                             paramSecond.MAX_MUT, paramSecond.EPIMUTEXCL, paramSecond.OUTPUT_DIR);
+                             paramSecond.MAX_MUT, paramSecond.EPI_RESTRICT, paramSecond.OUTPUT_DIR);
 
     std::cout << "****** Create new species *******" << std::endl;
     start = std::chrono::high_resolution_clock::now();

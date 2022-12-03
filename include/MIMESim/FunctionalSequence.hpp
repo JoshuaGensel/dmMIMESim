@@ -58,6 +58,7 @@ class FunctionalSequence
 
     std::vector<double> drawEpistasis_restricted();
     std::vector<double> drawEpistasis_unrestricted();
+    std::vector<double> drawEpistasis_semi_restricted();
 
     /**
      * Reads saved Epistasis values from disk from the inputPath
@@ -84,10 +85,11 @@ class FunctionalSequence
     // instances of this class. The only instance shall be retrieved through the
     // create_instance(...) function.
     FunctionalSequence(const constants::Constants& params)
-        : params{params}, kds{drawKdValues()}, epistasis{drawEpistasis()}, pairIndex{constructPairIndex()} {};
+        : params{params}, kds{drawKdValues()}, pairIndex{constructPairIndex()}, epistasis{drawEpistasis()} {};
+
     FunctionalSequence(const std::string& inputPath)
-        : params{constants::readParameters(inputPath)}, kds{readKdValues(inputPath)},
-          epistasis{readEpistasis(inputPath)}, pairIndex{constructPairIndex()} {};
+        : params{constants::readParameters(inputPath)}, kds{readKdValues(inputPath)}, pairIndex{constructPairIndex()},
+          epistasis{readEpistasis(inputPath)} {};
 
     FunctionalSequence(const FunctionalSequence&) = delete;
     FunctionalSequence(FunctionalSequence&&) = delete;

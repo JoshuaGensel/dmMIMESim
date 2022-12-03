@@ -112,29 +112,58 @@ bool FunctionalSequence::checkValidReadValues()
 
 std::vector<double> FunctionalSequence::drawEpistasis()
 {
-    if (this->params.EPIMUTEXCL)
+    if (this->params.EPI_RESTRICT == 0)
+        return drawEpistasis_unrestricted();
+    else if (this->params.EPI_RESTRICT == 1)
+        return drawEpistasis_semi_restricted();
+    else if (this->params.EPI_RESTRICT == 2)
         return drawEpistasis_restricted();
     else
-        return drawEpistasis_unrestricted();
+        throw std::runtime_error("EPI_RESTRICT should be 0, 1 or 2.");
 }
 
-// TODO: remove
+// only epistasis at positions that individually have an effect
 std::vector<double> FunctionalSequence::drawEpistasis_unrestricted()
 {
     std::vector<double> epistasis(this->params.PWVal);
+    std::fill(epistasis.begin(), epistasis.end(), this->params.NO_EPISTASIS);
+
     std::default_random_engine& generator = Generator::get_instance()->engine;
     std::bernoulli_distribution bd(this->params.P_EPISTASIS);
     std::lognormal_distribution<double> lnd(0, 1);
-    for (int i = 0; i < epistasis.size(); ++i)
+
+    std::vector<int> sym_pos_effect; // symbol at position has effect
+
+    int nSymb = this->params.Q - 1;
+    // loop over mutations
+    for (int i = 0; i < this->params.SVal; ++i)
     {
-        // first sample if position pair has epistatic effect (bernoulli) and then the value of the epistasis (log
-        // normal distributed)
-        epistasis[i] = bd(generator) ? lnd(generator) : this->params.NO_EPISTASIS;
+        if (this->kds[i] != this->params.KD_WT)
+        {
+            sym_pos_effect.push_back(i);
+        }
     }
+
+    for (int i = 0; i < sym_pos_effect.size() - 1; i++)
+    {
+        for (int j = i + 1; j < sym_pos_effect.size(); j++)
+        {
+
+            auto mut1 = getMutationFromVectorIndex(sym_pos_effect[i]);
+            auto mut2 = getMutationFromVectorIndex(sym_pos_effect[j]);
+
+            if ((mut1.getPosition() != mut2.getPosition()) && bd(generator))
+            {
+                int epi_index = FunctionalSequence::getPairIndex(mut1, mut2);
+                epistasis[epi_index] = lnd(generator);
+            }
+        }
+    }
+
     return epistasis;
 }
 
-// mututally exclusive epistasis of positions that individually have an effect
+// only epistasis at positions that individually have an effect
 // each position only interacts with one other position
 std::vector<double> FunctionalSequence::drawEpistasis_restricted()
 {
@@ -144,39 +173,119 @@ std::vector<double> FunctionalSequence::drawEpistasis_restricted()
     std::default_random_engine& generator = Generator::get_instance()->engine;
     std::bernoulli_distribution bd(this->params.P_EPISTASIS);
     std::lognormal_distribution<double> lnd(0, 1);
-    std::uniform_int_distribution<unsigned int> symb_unif(0, (this->params.Q - 1) - 1); // [low, high]
 
-    std::vector<int> sym_pos_effect;   // symbol at position have effect
-    std::vector<int> selected_effects; // single position has effect
+    std::vector<int> sym_pos_effect;                      // symbol at position have effect
+    std::vector<int> selected_effects;                    // single position has effect
+    std::vector<int> n_effect_per_pos(this->params.L, 0); // number of mutations that have an effect per pos
 
     int nSymb = this->params.Q - 1;
+    // loop over positions
     for (int i = 0; i < this->params.L; ++i)
     {
         // select only one mutation per position
-        // TODO: allow multiple? If so, add check in while loop for pos1=pos2
         for (int j = i * nSymb; j < i * nSymb + nSymb; j++)
         {
             if (this->kds[j] != this->params.KD_WT)
             {
                 sym_pos_effect.push_back(j);
+                ++n_effect_per_pos[i];
             }
         }
-        std::shuffle(sym_pos_effect.begin(), sym_pos_effect.end(), generator);
-        selected_effects.push_back(sym_pos_effect[0]);
-        sym_pos_effect.clear();
+        if (sym_pos_effect.size())
+        {
+            std::shuffle(sym_pos_effect.begin(), sym_pos_effect.end(), generator);
+            selected_effects.push_back(sym_pos_effect[0]);
+            sym_pos_effect.clear();
+        }
     }
     std::shuffle(selected_effects.begin(), selected_effects.end(), generator);
 
     int counter = 0;
     while (counter < selected_effects.size() - 1)
     {
-        if (bd(generator))
+        auto mut1 = getMutationFromVectorIndex(selected_effects[counter]);
+        auto mut2 = getMutationFromVectorIndex(selected_effects[counter + 1]);
+
+        // scale probability of position to be in epi interaction with #effect symbols at pos
+        int n_tries = n_effect_per_pos[mut1.getPosition() - 1] * n_effect_per_pos[mut2.getPosition() - 1];
+        bool has_effect = false;
+        for (int i = 0; i < n_tries; ++i)
         {
-            int epi_index = FunctionalSequence::getPairIndex(getMutationFromVectorIndex(selected_effects[counter]),
-                                                             getMutationFromVectorIndex(selected_effects[counter + 1]));
+            has_effect = bd(generator) ? true : has_effect; // true if any is true
+        }
+
+        if (has_effect)
+        {
+            int epi_index = FunctionalSequence::getPairIndex(mut1, mut2);
 
             epistasis[epi_index] = lnd(generator);
-            counter += 2; // next pair
+            ++counter; // extra +1 such that pair is skipped
+        }
+        ++counter;
+    }
+
+    return epistasis;
+}
+
+// only epistasis at positions that individually have an effect
+// each mutation only interacts with one other mutation
+std::vector<double> FunctionalSequence::drawEpistasis_semi_restricted()
+{
+    std::vector<double> epistasis(this->params.PWVal);
+    std::fill(epistasis.begin(), epistasis.end(), this->params.NO_EPISTASIS);
+
+    std::default_random_engine& generator = Generator::get_instance()->engine;
+    std::bernoulli_distribution bd(this->params.P_EPISTASIS);
+    std::lognormal_distribution<double> lnd(0, 1);
+
+    std::vector<int> sym_pos_effect; // symbol at position has effect
+
+    int nSymb = this->params.Q - 1;
+    // loop over mutations
+    for (int i = 0; i < this->params.SVal; ++i)
+    {
+        if (this->kds[i] != this->params.KD_WT)
+        {
+            sym_pos_effect.push_back(i);
+        }
+    }
+
+    std::shuffle(sym_pos_effect.begin(), sym_pos_effect.end(), generator);
+
+    std::vector<int> residuals;
+    int counter = 0;
+    while (counter < sym_pos_effect.size() - 1)
+    {
+        auto mut1 = getMutationFromVectorIndex(sym_pos_effect[counter]);
+        auto mut2 = getMutationFromVectorIndex(sym_pos_effect[counter + 1]);
+
+        if (mut1.getPosition() == mut2.getPosition())
+        {
+            residuals.push_back(sym_pos_effect[counter]);
+        }
+        else if (bd(generator))
+        {
+            int epi_index = FunctionalSequence::getPairIndex(mut1, mut2);
+            epistasis[epi_index] = lnd(generator);
+            ++counter; // extra +1 such that pair is skipped
+        }
+        ++counter;
+    }
+
+    // TODO: do this better / make into sub-function instead of same loop twice
+    counter = 0;
+    while ((residuals.size() > 0) && (counter < residuals.size() - 1))
+    {
+
+        auto mut1 = getMutationFromVectorIndex(residuals[counter]);
+        auto mut2 = getMutationFromVectorIndex(residuals[counter + 1]);
+
+        if ((mut1.getPosition() != mut2.getPosition()) && bd(generator))
+        {
+            int epi_index = FunctionalSequence::getPairIndex(mut1, mut2);
+
+            epistasis[epi_index] = lnd(generator);
+            ++counter; // extra +1 such that pair is skipped
         }
         ++counter;
     }

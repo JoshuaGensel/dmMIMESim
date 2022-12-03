@@ -76,7 +76,7 @@ If you want to set the simulation parameters, create the *parameters.txt* file i
 | p_mut              | (float)       |   probability for each position of being mutated (default: 0.01) |
 | p_error            | (float)       |   probability of introducing an error (default: 0.001) |
 | seed               | (int)         |   seed for random number generator used |
-| epistasis_mut_excl | (bool)        |   when true, each position can be in an epistatic interaction with at most one other position (default: false) |
+| epi_restrict       | (int)         |   0=unrestricted, 1=mutation-based, 2=position-based. For restriction: each mutation(1)/position(2) can be in an epistatic interaction with at most one other mutation(1)/position(2) (default: 0) |
 | B_tot              | (float)       |   total amount of protein in competition experiment, given in relation to the amount of sequences (default: 2.0) |
 | max_mut            | (int)         |   maximal number of mutation allowed per sequence (default=-1, no max) |
 
