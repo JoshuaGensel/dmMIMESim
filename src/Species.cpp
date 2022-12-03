@@ -571,19 +571,29 @@ namespace species
             {
                 if (numMutAct == 1)
                 {
-                    specId += mutation.getPosition() + mutation.getSymbol();
+                    for (int i = 1; i < mutation.getPosition(); ++i)
+                    {
+                        specId += pow(params.Q - 1, numMut);
+                    }
+                    specId += mutation.getSymbol() + 1;
                 }
                 else
                 {
                     // if the position of the actual mutations is != 1, the id is depending on the next position
-                    if (mutation.getPosition() != 1)
+                    for (int i = 1; i < mutation.getPosition(); ++i)
                     {
-                        for (int i = 1; i < mutation.getPosition(); ++i)
+                        if (numMut > numMutAct)
                         {
-                            specId +=
-                                std::roundl(utils::nChoosek(Lact - i, numMutAct - 1) * pow(params.Q - 1, numMutAct));
+                            specId += pow(params.Q - 1, numMut - numMutAct) * (params.Q - 1) *
+                                      std::roundl(utils::nChoosek(Lact - i, numMutAct - 1)) *
+                                      pow(params.Q - 1, numMutAct - 1);
                         }
+                        else
+                            specId += (params.Q - 1) * std::roundl(utils::nChoosek(Lact - i, numMutAct - 1)) *
+                                      pow(params.Q - 1, numMutAct - 1);
                     }
+                    // if position ==1, and for symbol remainder if position>1
+                    specId += (mutation.getSymbol()) * pow(params.Q - 1, numMutAct - 1);
                     Lact -= mutation.getPosition();
                     --numMutAct;
                 }
