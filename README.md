@@ -82,7 +82,6 @@ If you want to set the simulation parameters, create the *parameters.txt* file i
 
 **Comments:**
 1. Right now, kd_wt is always 1, but this can be easily adjusted in the code.
-2. It is only working for q=2 atm.
 
 
 ## Output
