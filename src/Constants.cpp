@@ -21,16 +21,21 @@ namespace constants
      */
     unsigned int Constants::computeMaxMut(unsigned int m, unsigned int l, double p_mut)
     {
+        std::vector<long double> nseqs;
         unsigned int maxMut = 2;
+        nseqs.push_back(static_cast<long double>(m) * utils::nChoosek(l, maxMut) * pow(p_mut, maxMut) *
+                        pow(1 - p_mut, l - maxMut));
+
         do
         {
             ++maxMut;
-        } while ((static_cast<long double>(m) * utils::nChoosek(l, maxMut + 1) * pow(p_mut, maxMut + 1) *
-                      pow(1 - p_mut, l - maxMut - 1) >
-                  5) &&
-                 (maxMut < l));
+            nseqs.push_back(static_cast<long double>(m) * utils::nChoosek(l, maxMut) * pow(p_mut, maxMut) *
+                            pow(1 - p_mut, l - maxMut));
+        }
+        // nseqs.size() == maxMut - 1; extra -1 for 0-based vector indexing
+        while (((nseqs[maxMut - 2] > 5) && (maxMut < l)) || ((nseqs[maxMut - 2] > nseqs[maxMut - 3]) && (maxMut < l)));
 
-        return maxMut;
+        return maxMut - 1;
     }
 
     std::vector<utils::id> Constants::setNMutRange(const unsigned int maxMut, const unsigned int L,
