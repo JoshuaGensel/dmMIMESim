@@ -386,7 +386,7 @@ namespace species
                     for (utils::id id : it->first)
                         outfile << std::to_string(id) << '\t';
                     // print number of sequences in pool
-                    outfile << '\t' << S_pool[specIdx];
+                    outfile << S_pool[specIdx];
                     // print species Kd
                     outfile << '\t' << it->second.getKd() << '\n';
                 }
