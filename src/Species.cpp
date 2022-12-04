@@ -874,37 +874,26 @@ namespace species
         // A duplicate mutation means the position is mutated back to the wildtype
         // and hence, that this mutation should be removed from the mutVector.
 
-        // Create a map to store the frequency of each mutations in vector
-        std::map<Mutation, int> countMutMap;
-        for (auto it = comb_mut.begin(); it != comb_mut.end();)
+        // Filter out duplicates
+        std::map<int, int> MutMap; // (pos, sym)
+        for (auto it = comb_mut.begin(); it != comb_mut.end(); ++it)
         {
-            auto result = countMutMap.insert(std::pair<Mutation, int>(*it, 1));
+            int pos = it->getPosition();
+            int sym = it->getSymbol();
+            auto result = MutMap.insert(std::make_pair(pos, sym));
+
             if (result.second == false) // element already exists
             {
-                it = comb_mut.erase(it);
-            }
-            else
-            {
-                ++it;
+                // same symbol
+                if (MutMap.find(pos)->second == sym)
+                    MutMap.erase(pos);
+                // else: keep first (newest) mutation == do nothing
             }
         }
 
-        // When two different mutations exist for the same position, keep the newest one.
-
-        // Create a map to store the frequency of each position in vector
-        std::map<unsigned int, int> countPosMap;
-        for (auto it = comb_mut.begin(); it != comb_mut.end();)
-        {
-            auto result = countPosMap.insert(std::pair<unsigned int, int>(it->getPosition(), 1));
-            if (result.second == false) // element already exists
-            {
-                it = comb_mut.erase(it);
-            }
-            else
-            {
-                ++it;
-            }
-        }
+        comb_mut.clear();
+        for (std::map<int, int>::iterator iter = MutMap.begin(); iter != MutMap.end(); ++iter)
+            comb_mut.push_back(Mutation(iter->first, iter->second));
 
         std::sort(comb_mut.begin(), comb_mut.end());
         return comb_mut;
