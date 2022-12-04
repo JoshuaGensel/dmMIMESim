@@ -613,10 +613,11 @@ namespace species
         {
             mutVector mutPos_chunk;
 
-            int posMax = (i + 1) * params.chunkL;
+            int posMax = (i + 1) * params.chunkL + 1; // pos are 1-indexed
             while ((mutPos_new.size() > 0) && (mutPos_new[0].getPosition() < posMax))
             {
-                mutPos_chunk.emplace_back(mutPos_new[0]);
+                int pos = mutPos_new[0].getPosition() - (i * params.chunkL);
+                mutPos_chunk.emplace_back(Mutation(pos, mutPos_new[0].getSymbol()));
                 mutPos_new.erase(mutPos_new.begin());
             }
             specIds[i] = mutPosToSpecId(mutPos_chunk, params);
