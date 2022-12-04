@@ -337,6 +337,19 @@ TEST_F(SpeciesTest, mutPosToSpecId)
     }
 }
 
+TEST_F(SpeciesTest, MutPosToSpecIds)
+{
+    for (utils::id id = 1; id <= params->NMUT_RANGE[3]; ++id)
+    {
+        auto mutPos = species::specIdToMutPos(id, *params, 25);
+
+        utils::ids computedIds = species::mutPosToSpecIds(mutPos, *params);
+
+        utils::ids ids{1, id};
+        EXPECT_EQ(ids, computedIds);
+    }
+}
+
 TEST_F(SpeciesTest, DrawErrors)
 {
     auto errors_lib1 = species::drawErrors(*params);
