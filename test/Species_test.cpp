@@ -418,6 +418,19 @@ TEST_F(SpeciesTest, DrawError_2)
 // countErrors_oneSeq
 
 // countMutations
+TEST(speciesTest, combineMutations)
+{
+    species::mutVector mutsA{Mutation(1, 2), Mutation(12, 0), Mutation(24, 1), Mutation(32, 2), Mutation(49, 0)};
+    species::mutVector mutsB{Mutation(3, 2), Mutation(12, 1), Mutation(24, 1)};
+    species::mutVector combined = species::combineMutations(mutsA, mutsB);
+
+    EXPECT_EQ(combined.size(), 5);
+    EXPECT_EQ(combined[0], Mutation(1, 2));
+    EXPECT_EQ(combined[1], Mutation(3, 2));
+    EXPECT_EQ(combined[2], Mutation(12, 1));
+    EXPECT_EQ(combined[3], Mutation(32, 2));
+    EXPECT_EQ(combined[4], Mutation(49, 0));
+}
 
 // combineSpecies
 
