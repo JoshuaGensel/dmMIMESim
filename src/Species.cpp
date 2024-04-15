@@ -474,7 +474,7 @@ namespace species
         // check if Id is valid
         if (specId <= params.NMUT_RANGE.back() && numMut > 0)
         {
-            unsigned int Lact = params.chunkL;
+            unsigned int Lact = params.CHUNKL;
             unsigned int numMutAct = numMut;
             auto mSymbols = params.Q - 1;
 
@@ -537,7 +537,7 @@ namespace species
         mutVector mutPos;
         for (int i = 0; i < params.NCHUNKS; i++)
         {
-            int offset = i * params.chunkL;
+            int offset = i * params.CHUNKL;
             mutVector mutPos_chunk = specIdToMutPos(specIds[i], params, offset);
             mutPos.reserve(mutPos.size() + mutPos_chunk.size());
             mutPos.insert(mutPos.end(), mutPos_chunk.begin(), mutPos_chunk.end());
@@ -564,7 +564,7 @@ namespace species
                                              return Mutation(x.getPosition() - y.getPosition(), x.getSymbol());
                                          });
             }
-            unsigned Lact = params.chunkL;
+            unsigned Lact = params.CHUNKL;
             unsigned numMutAct = numMut;
 
             for (auto const& mutation : std::as_const(mutPos_new))
@@ -613,10 +613,10 @@ namespace species
         {
             mutVector mutPos_chunk;
 
-            int posMax = (i + 1) * params.chunkL + 1; // pos are 1-indexed
+            int posMax = (i + 1) * params.CHUNKL + 1; // pos are 1-indexed
             while ((mutPos_new.size() > 0) && (mutPos_new[0].getPosition() < posMax))
             {
-                int pos = mutPos_new[0].getPosition() - (i * params.chunkL);
+                int pos = mutPos_new[0].getPosition() - (i * params.CHUNKL);
                 mutPos_chunk.emplace_back(Mutation(pos, mutPos_new[0].getSymbol()));
                 mutPos_new.erase(mutPos_new.begin());
             }

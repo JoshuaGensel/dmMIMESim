@@ -8,6 +8,7 @@
 
 #include "Constants.hpp"
 
+#include <algorithm>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -38,11 +39,35 @@ namespace constants
         return maxMut - 1;
     }
 
+    /*
+     * Given L, find the value x, such that L % x = 0 and x is at most 25.
+     */
+    unsigned int Constants::computeChunkL(unsigned int l)
+    {
+        uint largestDivisor = std::min(uint(25), l);
+        for (int x = largestDivisor; x > 0; x--)
+        {
+            if (l % x == 0)
+            {
+                largestDivisor = x;
+
+                if (largestDivisor == 1)
+                {
+                    throw std::runtime_error("Reconsider your value for L. Prime numbers are a bad idea. Ideally, try "
+                                             "something divisible by 25.");
+                }
+
+                return largestDivisor; // in worst case, returns 1
+            }
+        }
+        return 0; // can't happen
+    }
+
     std::vector<utils::id> Constants::setNMutRange(const unsigned int maxMut, const unsigned int L,
                                                    const unsigned int q)
     {
-        // compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id range for
-        // each number of mutations larger range for adding errors (i.e. more mutated positions)
+        // compute the number of possible sequence for 0..MAX_MUT mutations, the cumulative sum gives the id
+        // range for each number of mutations larger range for adding errors (i.e. more mutated positions)
         std::vector<utils::id> nMutRange(maxMut * 2 + 1);
         nMutRange[0] = 1;
         for (unsigned int i = 1; i <= maxMut * 2; ++i)
@@ -77,10 +102,10 @@ namespace constants
 
     void Constants::checkValidity()
     {
-        if (this->L % this->chunkL)
+        if (this->L % this->CHUNKL)
         {
             // std::cerr << "Not implemented!\n";
-            throw std::runtime_error("L should be multiplative of chunkL=25.");
+            throw std::runtime_error("L should be multiplative of CHUNKL.");
         }
 
         if (!((this->EPI_RESTRICT == 0) || (this->EPI_RESTRICT == 1) || (this->EPI_RESTRICT == 2)))
@@ -104,8 +129,8 @@ namespace constants
 
             fs::path paraFile(fs::canonical(outputPath));
 
-            // the path can either be a directory, where the parameter file has the standard name, or it the path
-            // contains a given parameter file
+            // the path can either be a directory, where the parameter file has the standard name, or it the
+            // path contains a given parameter file
             if (fs::is_directory(outputPath))
             {
                 paraFile = (fs::canonical(outputPath) / Constants::PARAMETER_FILE);
@@ -145,7 +170,8 @@ namespace constants
                         while (std::getline(infile, line))
                         {
 
-                            // stream through each line to read the parameter name and its value, seperated by tabular
+                            // stream through each line to read the parameter name and its value, seperated
+                            // by tabular
                             std::istringstream lineSS(line);
 
                             std::getline(lineSS, param, '\t');
@@ -254,5 +280,4 @@ namespace constants
     {
         writeParameters("", params);
     }
-
 }

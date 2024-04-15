@@ -45,7 +45,7 @@ TEST_F(ConstantsTest, ConstructFromValues)
     constants::Constants cons_val = constants::Constants(length, q, m, p_mut, p_error, p_effect, p_epistasis, s, B_tot,
                                                          max_mut, epi_restrict, std::filesystem::path());
     EXPECT_EQ(cons_val.L, length);
-    EXPECT_EQ(cons_val.chunkL, 25);
+    EXPECT_EQ(cons_val.CHUNKL, 25);
     EXPECT_EQ(cons_val.NCHUNKS, length / 25);
     EXPECT_EQ(cons_val.Q, q);
     EXPECT_EQ(cons_val.M, m);
@@ -77,9 +77,18 @@ TEST_F(ConstantsTest, ConstructFromPath)
     EXPECT_EQ(cons_path.Q, 4);
 }
 
+TEST_F(ConstantsTest, AdaptiveChunkL)
+{
+    length = 120;
+    constants::Constants cons_val = constants::Constants(length, q, m, p_mut, p_error, p_effect, p_epistasis, s, B_tot,
+                                                         max_mut, epi_restrict, std::filesystem::path());
+    EXPECT_EQ(cons_val.CHUNKL, 24);
+    EXPECT_EQ(cons_val.NCHUNKS, 5);
+}
+
 TEST_F(ConstantsTest, InvalidValues)
 {
-    const unsigned int invalid_length = 30; // not a multiplative of 25
+    const unsigned int invalid_length = 97; // primenumber
     unsigned invalid_epi_restrict = 3;
 
     EXPECT_THROW(
@@ -91,7 +100,9 @@ TEST_F(ConstantsTest, InvalidValues)
             }
             catch (const std::runtime_error& e)
             {
-                EXPECT_STREQ("L should be multiplative of chunkL=25.", e.what());
+                EXPECT_STREQ("Reconsider your value for L. Prime numbers are a bad idea. Ideally, try "
+                             "something divisible by 25.",
+                             e.what());
                 throw;
             }
         },
