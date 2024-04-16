@@ -21,6 +21,7 @@ class FunctionalSequence
     FRIEND_TEST(FunctionalSequenceTestPrivate, ReadEpistasis);
     FRIEND_TEST(FunctionalSequenceTestPrivate, GetMutationFromVectorIndex);
     FRIEND_TEST(FunctionalSequenceTestPrivate, PairIndex);
+    FRIEND_TEST(FunctionalSequenceTestPrivate, GetPairIndex);
     FRIEND_TEST(FunctionalSequenceTestPrivate, DrawEpistasis_restricted);
     FRIEND_TEST(FunctionalSequenceTestPrivate, DrawEpistasis_semi_restricted);
     FRIEND_TEST(FunctionalSequenceTestPrivate, DrawEpistasis_unrestricted);

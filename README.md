@@ -76,13 +76,17 @@ If you want to set the simulation parameters, create the *parameters.txt* file i
 | p_mut              | (float)       |   probability for each position of being mutated (default: 0.01) |
 | p_error            | (float)       |   probability of introducing an error (default: 0.001) |
 | seed               | (int)         |   seed for random number generator used |
-| epi_restrict       | (int)         |   0=unrestricted, 1=mutation-based, 2=position-based. For restriction: each mutation(1)/position(2) can be in an epistatic interaction with at most one other mutation(1)/position(2) (default: 0) |
+| epi_restrict       | (int)         |   regulation for drawing epistatic interaction, see comments below. (default: 0) |
 | B_tot              | (float)       |   total amount of protein in competition experiment, given in relation to the amount of sequences (default: 2.0) |
 | max_mut            | (int)         |   maximal number of mutation allowed per sequence (default=-1, no max) |
 
 **Comments:**
 1. Right now, kd_wt is always 1, but this can be easily adjusted in the code.
-
+2. Epistasis values (strength of interaction) are sampled from a standard log normal distribution.
+3. Possible values for epi_restrict are 0,1,2:  
+  - 0=unrestricted, all possible pairs of functional mutations mut1=(pos1, symbol1), mut2=(pos2, symb2) with pos1!=pos2, kd_mut1!=kd_wt and kd_mut2!=kd_wt are assigned an epistasis value with probability p_epistasis. 
+  - 1=semi-restricted, each mutation can only be in an epistatic interaction with one other mutation. From all functional mutations mut=(pos, symbol), Mf, Mf/2 pairs are assigned an epistasis value with probability p_epistasis.
+  - 2=restricted, same as 1, only now positions themselves are mutually exclusive: each position can only be in an epistatic interaction with one other position.
 
 ## Output
 

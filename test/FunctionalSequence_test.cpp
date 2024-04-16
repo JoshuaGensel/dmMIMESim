@@ -130,6 +130,18 @@ TEST_F(FunctionalSequenceTestPrivate, PairIndex)
     EXPECT_EQ(effects->pairIndex[2], (0 + (effects->params.L - 1) + (effects->params.L - 2)));
 }
 
+TEST_F(FunctionalSequenceTestPrivate, GetPairIndex)
+{
+    EXPECT_EQ(effects->getPairIndex(1, 2, 0, 0), 0);
+    EXPECT_EQ(effects->getPairIndex(1, 2, 0, 1), 1);
+    EXPECT_EQ(effects->getPairIndex(2, 3, 0, 0), (effects->params.L - 1) * std::pow(effects->params.Q - 1, 2));
+    EXPECT_EQ(effects->getPairIndex(2, 3, 1, 1),
+              (effects->params.L - 1) * std::pow(effects->params.Q - 1, 2) + (effects->params.Q - 1) * 1 + 1);
+    EXPECT_EQ(effects->getPairIndex((effects->params.L - 1), effects->params.L, (effects->params.Q - 1) - 1,
+                                    (effects->params.Q - 1) - 1),
+              effects->params.PWVal - 1);
+}
+
 TEST_F(FunctionalSequenceTestPrivate, DrawEpistasis_restricted)
 {
     int counter = 0;

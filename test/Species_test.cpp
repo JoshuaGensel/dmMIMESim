@@ -71,7 +71,7 @@ TEST_F(SpeciesTest, specIdToMutPos)
     constants::Constants* small_params = new constants::Constants(length, q, m, p_mut, p_error, p_effect, p_epistasis,
                                                                   seed, B_tot, epi_restrict, outputDir);
 
-    auto chunkL = small_params->chunkL;
+    auto chunkL = small_params->CHUNKL;
     auto numSymbols = q - 1;
 
     // Test id 1 = no  mutation
@@ -212,35 +212,35 @@ TEST_F(SpeciesTest, getNumberOfMutationsById)
 
     EXPECT_EQ(species::getNumberOfMutationsById(1, *params), 0);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 1) * std::pow(params->Q - 1, 1) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 1) * std::pow(params->Q - 1, 1) + 2, *params),
         1);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 2) * std::pow(params->Q - 1, 2) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 2) * std::pow(params->Q - 1, 2) + 2, *params),
         2);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 3) * std::pow(params->Q - 1, 3) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 3) * std::pow(params->Q - 1, 3) + 2, *params),
         3);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 4) * std::pow(params->Q - 1, 4) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 4) * std::pow(params->Q - 1, 4) + 2, *params),
         4);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 5) * std::pow(params->Q - 1, 5) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 5) * std::pow(params->Q - 1, 5) + 2, *params),
         5);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 6) * std::pow(params->Q - 1, 6) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 6) * std::pow(params->Q - 1, 6) + 2, *params),
         6);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 7) * std::pow(params->Q - 1, 7) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 7) * std::pow(params->Q - 1, 7) + 2, *params),
         7);
     EXPECT_EQ(
-        species::getNumberOfMutationsById(utils::nChoosek(params->chunkL, 8) * std::pow(params->Q - 1, 8) + 2, *params),
+        species::getNumberOfMutationsById(utils::nChoosek(params->CHUNKL, 8) * std::pow(params->Q - 1, 8) + 2, *params),
         8);
 
     try
     {
-        // utils::ids invalid_ids({1, llround(utils::nChoosek(params->chunkL, 9) * (params->Q - 1) + 2)});
+        // utils::ids invalid_ids({1, llround(utils::nChoosek(params->CHUNKL, 9) * (params->Q - 1) + 2)});
         auto invalid =
-            species::Species({1, llround(utils::nChoosek(params->chunkL, 9) * std::pow(params->Q - 1, 9) + 2)}, *params)
+            species::Species({1, llround(utils::nChoosek(params->CHUNKL, 9) * std::pow(params->Q - 1, 9) + 2)}, *params)
                 .getNumMuts();
         FAIL() << "Expected specId is out of range.";
     }
